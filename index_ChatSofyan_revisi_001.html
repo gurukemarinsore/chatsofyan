@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ChatSofyan - Berbagi Berkas, Tautan & Teks Sementara</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              900: '#312e81',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      -webkit-tap-highlight-color: transparent;
+      overscroll-behavior-y: contain;
+    }
+    .scrollbar-thin::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    .scrollbar-thin::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .scrollbar-thin::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.2); opacity: 0.3; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+    .pulse-indicator {
+      animation: pulse-ring 2s infinite ease-in-out;
+    }
+    :root {
+      --app-height: 100dvh;
+    }
+    html, body {
+      width: 100%;
+      height: var(--app-height, 100dvh);
+    }
+    body {
+      min-height: var(--app-height, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans antialiased flex flex-col overflow-hidden select-none">
+
+  <!-- ==================== 1. BILAH ATAS (HEADER) ==================== -->
+  <header class="bg-white border-b border-slate-200 px-4 py-2.5 z-30 flex-shrink-0 shadow-sm">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
+      
+      <!-- Identitas Aplikasi -->
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center text-white shadow-md shadow-brand-500/20 flex-shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-bold text-slate-800 text-sm md:text-base leading-tight">ChatSofyan</h1>
+            <span id="badge-mode" class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+              GAS Live
+            </span>
+          </div>
+          <div class="flex items-center gap-1.5 text-[11px] text-slate-500">
+            <span id="sync-dot" class="w-2 h-2 rounded-full bg-emerald-500 inline-block pulse-indicator"></span>
+            <span id="sync-text">Menyiapkan aplikasi...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Identitas Perangkat -->
+      <div class="flex items-center gap-2">
+        <!-- Input Perangkat Aktif -->
+        <div class="flex items-center bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 focus-within:ring-2 focus-within:ring-brand-500 transition">
+          <svg class="w-3.5 h-3.5 text-slate-400 mr-1.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          <div class="flex flex-col">
+            <span class="text-[9px] text-slate-400 font-semibold leading-none">Nama Anda / Perangkat:</span>
+            <input 
+              type="text" 
+              id="device-name-input" 
+              class="bg-transparent text-xs font-bold text-brand-700 outline-none w-24 sm:w-36 mt-0.5" 
+              title="Nama Anda saat mengirim pesan/berkas"
+              placeholder="Nama Anda"
+            />
+          </div>
+        </div>
+</div>
+
+    </div>
+  </header>
+
+  <!-- ==================== 2. TATA LETAK UTAMA (DUA PANEL / KAMAR) ==================== -->
+  <div class="flex-1 flex max-w-7xl w-full mx-auto overflow-hidden">
+    
+    <!-- ================= PANEL KIRI: DAFTAR KAMAR / LACI ================= -->
+    <aside id="rooms-sidebar" class="w-full md:w-80 lg:w-96 bg-white border-r border-slate-200 flex flex-col flex-shrink-0 transition-all duration-300">
+      
+      <!-- Header Pencarian / Filter Kamar -->
+      <div class="p-3 border-b border-slate-100 bg-slate-50/50 flex flex-col gap-2">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Daftar Kamar / Laci</span>
+            <span id="total-rooms-badge" class="px-1.5 py-0.2 bg-brand-100 text-brand-700 font-bold text-[10px] rounded-full">0</span>
+          </div>
+</div>
+        
+        <!-- Input Cari Kamar -->
+        <div class="relative">
+          <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input 
+            type="text" 
+            id="search-room-input" 
+            placeholder="Cari nama kamar atau perangkat..."
+            class="w-full pl-9 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-brand-500/30 transition"
+          />
+        </div>
+      </div>
+
+      <!-- Info Aturan 10 Menit Ringkas -->
+      <div class="bg-indigo-50/70 px-3 py-1.5 border-b border-indigo-100 flex items-center gap-1.5 text-[11px] text-indigo-900">
+        <svg class="w-3.5 h-3.5 text-indigo-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>Data di semua kamar kedaluwarsa dlm 10 mnt.</span>
+      </div>
+
+      <!-- Daftar Laci Pengirim (Scrollable) -->
+      <div id="rooms-list" class="flex-1 overflow-y-auto p-2 space-y-1.5 scrollbar-thin">
+        <!-- Render Kamar via JS -->
+      </div>
+
+    </aside>
+
+    <!-- ================= PANEL KANAN: ISI KAMAR TERPILIH ================= -->
+    <section id="room-content-pane" class="hidden md:flex flex-1 flex-col bg-slate-100 overflow-hidden relative">
+      
+      <!-- Header Kamar Terpilih -->
+      <div id="room-header" class="bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between shadow-xs z-10">
+        <div class="flex items-center gap-3">
+          
+          <!-- Tombol Kembali (Mobile Only) -->
+          <button id="btn-back-to-rooms" class="md:hidden p-1.5 -ml-1 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+
+          <!-- Avatar & Nama Kamar -->
+          <div class="w-10 h-10 rounded-xl bg-brand-600 text-white font-bold flex items-center justify-center text-base shadow-sm flex-shrink-0" id="current-room-avatar">
+            P
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 id="current-room-name" class="font-bold text-slate-800 text-sm md:text-base">Kamar</h2>
+              <span id="current-room-badge" class="hidden text-[10px] bg-brand-50 text-brand-700 font-bold px-2 py-0.5 rounded-md border border-brand-200">Perangkat Anda</span>
+            </div>
+            <p id="current-room-stats" class="text-xs text-slate-500">0 item aktif</p>
+          </div>
+        </div>
+
+        <!-- Aksi Cepat Kamar -->
+        <div class="flex items-center gap-2">
+          <button 
+            id="btn-clear-current-room" 
+            class="px-2.5 py-1.5 text-xs text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-lg font-medium transition flex items-center gap-1" 
+            title="Kosongkan semua berkas di kamar ini">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            <span class="hidden sm:inline">Bersihkan Kamar</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Area Pesan di Dalam Kamar Terpilih (Feed) -->
+      <div id="messages-scroll-area" class="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin">
+        <div id="room-messages-container" class="max-w-3xl mx-auto space-y-3">
+          <!-- Pesan di kamar aktif akan dirender di sini -->
+        </div>
+
+        <!-- Tampilan Kosong Kamar (Empty Room State) -->
+        <div id="empty-room-state" class="hidden h-full flex flex-col items-center justify-center text-center p-6">
+          <div class="w-16 h-16 bg-slate-200/80 rounded-2xl flex items-center justify-center text-slate-400 mb-3 shadow-inner">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+            </svg>
+          </div>
+          <h3 class="text-sm font-bold text-slate-700">Kamar Ini Masih Kosong</h3>
+          <p class="text-xs text-slate-500 max-w-xs mt-1">Kirimkan teks, tautan, atau lampirkan berkas ke kamar ini melalui bilah di bawah.</p>
+        </div>
+      </div>
+
+      <!-- ================= BILAH BAWAH (INPUT PENGIRIMAN KE KAMAR) ================= -->
+      <div class="bg-white border-t border-slate-200 p-3 flex-shrink-0">
+        <div class="max-w-3xl mx-auto">
+          
+          <!-- Pratinjau Berkas Lampiran -->
+          <div id="file-preview-bar" class="hidden mb-2 bg-indigo-50 border border-indigo-200 rounded-xl p-2 flex items-center justify-between">
+            <div class="flex items-center gap-2 overflow-hidden">
+              <div class="p-1 bg-indigo-600 text-white rounded-md">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                </svg>
+              </div>
+              <div class="truncate">
+                <p id="file-preview-name" class="text-xs font-bold text-indigo-950 truncate">berkas.pdf</p>
+                <p id="file-preview-size" class="text-[10px] text-indigo-700">0 KB</p>
+              </div>
+            </div>
+            <button id="btn-cancel-file" class="p-1 text-slate-400 hover:text-rose-600 transition" title="Batalkan">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Form Input Pengiriman -->
+          <form id="send-form" class="flex items-center gap-2" onsubmit="event.preventDefault(); handleSendMessage();">
+            <input type="file" id="file-input" class="hidden" onchange="handleFileSelected(event)">
+
+            <!-- Tombol Lampirkan Dokumen -->
+            <button 
+              type="button" 
+              onclick="document.getElementById('file-input').click()"
+              class="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition flex-shrink-0"
+              title="Lampirkan Berkas (Maks. 10MB)">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+              </svg>
+            </button>
+
+            <!-- Tombol Tempel Clipboard Cepat -->
+            <button 
+              type="button" 
+              id="btn-paste-clipboard" 
+              class="hidden sm:flex items-center gap-1 px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-medium transition flex-shrink-0"
+              title="Tempel dari Clipboard">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              <span>Tempel</span>
+            </button>
+
+            <!-- Kolom Input Teks/URL -->
+            <div class="relative flex-1">
+              <input 
+                type="text" 
+                id="message-input" 
+                placeholder="Tulis pesan atau tempel tautan di kamar ini..." 
+                class="w-full bg-slate-100 text-slate-800 placeholder-slate-400 text-xs sm:text-sm rounded-xl px-3.5 py-2.5 border border-transparent focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition"
+                autocomplete="off"
+              />
+            </div>
+
+            <!-- Tombol Kirim -->
+            <button 
+              type="submit" 
+              id="btn-send" 
+              class="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs sm:text-sm font-bold rounded-xl shadow-md shadow-brand-500/20 transition flex items-center justify-center gap-1.5 flex-shrink-0">
+              <span id="btn-send-text">Kirim</span>
+              <svg id="btn-send-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              </svg>
+              <svg id="btn-send-spinner" class="w-4 h-4 animate-spin hidden" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </button>
+          </form>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+
+  <!-- ==================== 3. TOAST NOTIFIKASI ==================== -->
+  <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 transform -translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+    <div class="bg-slate-900/95 backdrop-blur text-white text-xs md:text-sm px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 border border-slate-700">
+      <span id="toast-icon">ℹ️</span>
+      <span id="toast-message">Pesan notifikasi</span>
+    </div>
+  </div>
+
+  <!-- ==================== 4. JAVASCRIPT LOGIC ==================== -->
+  <script>
+    // ================================================================
+    // ChatSofyan - Frontend GitHub Pages
+    // ChatSofyan Revisi 001 - GitHub Pages (endpoint GAS permanen)
+    // ================================================================
+
+    const APP_CONFIG = Object.freeze({
+      GAS_ENDPOINT: "https://script.google.com/macros/s/AKfycbxxK75xEr7QH61A7ITvxUtxmEFp35eOVjC65dLgMRQdyfYzuvE5ocB0H6YyCw0YNDRGRQ/exec",
+      DEFAULT_TTL_SECONDS: 10 * 60,
+      DEFAULT_MAX_FILE_BYTES: 10 * 1024 * 1024,
+      ACTIVE_POLL_MS: 3500,
+      BACKGROUND_POLL_MS: 12000
+    });
+
+    let currentItems = [];
+    let selectedRoom = "";
+    let selectedFile = null;
+    let selectedFileBase64 = null;
+    let pollingInterval = null;
+    let countdownInterval = null;
+    let isSubmitting = false;
+    let roomFilterQuery = "";
+    let serverOffsetMs = 0;
+    let serverTtlSeconds = APP_CONFIG.DEFAULT_TTL_SECONDS;
+    let serverMaxFileBytes = APP_CONFIG.DEFAULT_MAX_FILE_BYTES;
+    let syncInFlight = false;
+    let mobileRoomOpen = false;
+
+    const STORAGE_KEY_DEVICE = "chatsofyan_device_name";
+
+    document.addEventListener("DOMContentLoaded", () => {
+      initViewportHeight();
+      initDeviceName();
+      setupEventListeners();
+      loadInitialData();
+      startCountdownTimer();
+      startPolling();
+      handleResponsiveLayout();
+    });
+
+    // ================================================================
+    // VIEWPORT / KEYBOARD MOBILE
+    // ================================================================
+    function initViewportHeight() {
+      const update = () => {
+        const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        document.documentElement.style.setProperty("--app-height", `${Math.round(height)}px`);
+      };
+
+      update();
+      window.addEventListener("resize", update);
+      window.addEventListener("orientationchange", update);
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", update);
+      }
+    }
+
+    // ================================================================
+    // IDENTITAS PERANGKAT
+    // ================================================================
+    function randomDeviceName() {
+      return `Perangkat-${Math.floor(1000 + Math.random() * 9000)}`;
+    }
+
+    function getMyDevice() {
+      return localStorage.getItem(STORAGE_KEY_DEVICE) || "Perangkat";
+    }
+
+    function initDeviceName() {
+      let devName = localStorage.getItem(STORAGE_KEY_DEVICE);
+      if (!devName) {
+        devName = randomDeviceName();
+        localStorage.setItem(STORAGE_KEY_DEVICE, devName);
+      }
+
+      const devInput = document.getElementById("device-name-input");
+      devInput.value = devName;
+
+      if (!selectedRoom) selectedRoom = devName;
+
+      devInput.addEventListener("change", (e) => {
+        const oldName = getMyDevice();
+        const val = (e.target.value || "").trim() || randomDeviceName();
+        localStorage.setItem(STORAGE_KEY_DEVICE, val);
+        e.target.value = val;
+
+        if (selectedRoom === oldName) selectedRoom = val;
+        refreshFullUI();
+        showToast("Nama perangkat diperbarui", "✅");
+      });
+    }
+
+    // ================================================================
+    // ENDPOINT PERMANEN & STATUS KONEKSI
+    // ================================================================
+    function buildEndpointUrl(action) {
+      const endpoint = APP_CONFIG.GAS_ENDPOINT;
+      try {
+        const url = new URL(endpoint);
+        if (action) url.searchParams.set("action", action);
+        return url.toString();
+      } catch (_) {
+        const sep = endpoint.includes("?") ? "&" : "?";
+        return action ? `${endpoint}${sep}action=${encodeURIComponent(action)}` : endpoint;
+      }
+    }
+
+    function setSyncStatus(state, text) {
+      const dot = document.getElementById("sync-dot");
+      const label = document.getElementById("sync-text");
+      label.textContent = text;
+
+      const base = "w-2 h-2 rounded-full inline-block";
+      if (state === "online") {
+        dot.className = `${base} bg-emerald-500 pulse-indicator`;
+      } else if (state === "syncing" || state === "idle") {
+        dot.className = `${base} bg-amber-400 pulse-indicator`;
+      } else if (state === "offline") {
+        dot.className = `${base} bg-rose-500`;
+      } else {
+        dot.className = `${base} bg-slate-400`;
+      }
+    }
+
+    function updateServerClock(serverTime) {
+      const serverMs = Date.parse(serverTime || "");
+      if (Number.isFinite(serverMs)) {
+        serverOffsetMs = serverMs - Date.now();
+      }
+    }
+
+    function serverNowMs() {
+      return Date.now() + serverOffsetMs;
+    }
+
+    // ================================================================
+    // NORMALISASI & EXPIRY
+    // ================================================================
+    function parseLegacyFileSize(value) {
+      if (typeof value === "number") return value;
+      const text = String(value || "").trim();
+      const match = text.match(/^([0-9.]+)\s*(B|KB|MB|GB)?$/i);
+      if (!match) return 0;
+      const number = Number(match[1]);
+      const unit = (match[2] || "B").toUpperCase();
+      const factor = { B: 1, KB: 1024, MB: 1024 ** 2, GB: 1024 ** 3 }[unit] || 1;
+      return Math.round(number * factor);
+    }
+
+    function normalizeItem(item) {
+      const timestamp = item.timestamp || new Date().toISOString();
+      const fallbackExpiry = new Date(Date.parse(timestamp) + serverTtlSeconds * 1000).toISOString();
+      return {
+        id: String(item.id || `msg_${Date.now()}`),
+        timestamp,
+        expiresAt: item.expiresAt || fallbackExpiry,
+        room: String(item.room || item.sender || "Perangkat"),
+        sender: String(item.sender || "Perangkat"),
+        type: String(item.type || "text").toLowerCase(),
+        content: String(item.content || ""),
+        accessUrl: String(item.accessUrl || ""),
+        fileSize: parseLegacyFileSize(item.fileSize),
+        mimeType: String(item.mimeType || ""),
+        status: String(item.status || "active").toLowerCase()
+      };
+    }
+
+    function getRemainingSeconds(item) {
+      const expiresMs = Date.parse(item.expiresAt || "");
+      if (Number.isFinite(expiresMs)) {
+        return Math.max(0, Math.floor((expiresMs - serverNowMs()) / 1000));
+      }
+
+      const createdMs = Date.parse(item.timestamp || "");
+      if (!Number.isFinite(createdMs)) return 0;
+      return Math.max(0, Math.floor((createdMs + serverTtlSeconds * 1000 - serverNowMs()) / 1000));
+    }
+
+    function filterExpiredLocally() {
+      currentItems = currentItems.filter(item => item.status === "active" && getRemainingSeconds(item) > 0);
+    }
+
+    // ================================================================
+    // LOAD & POLLING
+    // ================================================================
+    function loadInitialData() {
+      serverOffsetMs = 0;
+      serverTtlSeconds = APP_CONFIG.DEFAULT_TTL_SECONDS;
+      serverMaxFileBytes = APP_CONFIG.DEFAULT_MAX_FILE_BYTES;
+      currentItems = [];
+      refreshFullUI();
+      setSyncStatus("syncing", "Menghubungkan ke backend...");
+      fetchFromGAS();
+    }
+
+    function startPolling() {
+      const runSync = () => fetchFromGAS({ silent: true });
+
+      const applyInterval = () => {
+        if (pollingInterval) clearInterval(pollingInterval);
+        const delay = document.hidden ? APP_CONFIG.BACKGROUND_POLL_MS : APP_CONFIG.ACTIVE_POLL_MS;
+        pollingInterval = setInterval(runSync, delay);
+      };
+
+      applyInterval();
+
+      document.addEventListener("visibilitychange", () => {
+        applyInterval();
+        if (document.hidden) {
+          setSyncStatus("idle", "Hemat daya • sinkronisasi melambat");
+        } else {
+          runSync();
+        }
+      });
+    }
+
+    async function fetchFromGAS(options = {}) {
+      if (syncInFlight) return false;
+
+      const url = buildEndpointUrl("sync");
+      if (!url) return false;
+
+      syncInFlight = true;
+      if (!options.silent) setSyncStatus("syncing", "Menyinkronkan...");
+
+      try {
+        const res = await fetch(url, { method: "GET", cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const data = await res.json();
+        if (!data || data.ok !== true || !Array.isArray(data.items)) {
+          throw new Error(data && data.message ? data.message : "Response backend tidak sesuai.");
+        }
+
+        updateServerClock(data.serverTime);
+        serverTtlSeconds = Number(data.ttlSeconds || APP_CONFIG.DEFAULT_TTL_SECONDS);
+        serverMaxFileBytes = Number(data.maxFileBytes || APP_CONFIG.DEFAULT_MAX_FILE_BYTES);
+
+        currentItems = data.items.map(normalizeItem).filter(item => item.status === "active" && getRemainingSeconds(item) > 0);
+        refreshFullUI();
+
+        const now = new Date();
+        setSyncStatus("online", `Tersinkronisasi • ${now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`);
+        return true;
+      } catch (err) {
+        console.warn("Gagal sinkronisasi dengan ChatSofyan:", err);
+        setSyncStatus("offline", "Koneksi backend terputus");
+        return false;
+      } finally {
+        syncInFlight = false;
+      }
+    }
+
+    async function postToGAS(payload) {
+      const endpoint = APP_CONFIG.GAS_ENDPOINT;
+
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (!data || data.ok !== true) {
+        throw new Error(data && data.message ? data.message : "Backend menolak permintaan.");
+      }
+      updateServerClock(data.serverTime);
+      return data;
+    }
+
+    // ================================================================
+    // KAMAR / LACI
+    // ================================================================
+    function getGroupedRooms() {
+      const myDevice = getMyDevice();
+      const map = { [myDevice]: [] };
+
+      currentItems.forEach(item => {
+        const roomName = item.room || item.sender || "Perangkat";
+        if (!map[roomName]) map[roomName] = [];
+        map[roomName].push(item);
+      });
+
+      return map;
+    }
+
+    function getOrderedRoomNames(grouped) {
+      const myDevice = getMyDevice();
+      return Object.keys(grouped).sort((a, b) => {
+        if (a === myDevice) return -1;
+        if (b === myDevice) return 1;
+
+        const aLatest = Math.max(0, ...(grouped[a] || []).map(i => Date.parse(i.timestamp) || 0));
+        const bLatest = Math.max(0, ...(grouped[b] || []).map(i => Date.parse(i.timestamp) || 0));
+        return bLatest - aLatest;
+      });
+    }
+
+    function refreshFullUI() {
+      const grouped = getGroupedRooms();
+      const roomNames = getOrderedRoomNames(grouped);
+
+      if (!selectedRoom || !roomNames.includes(selectedRoom)) {
+        selectedRoom = roomNames[0] || getMyDevice();
+      }
+
+      renderRoomsList();
+      renderActiveRoomContent();
+      handleResponsiveLayout();
+    }
+
+    function renderRoomsList() {
+      const container = document.getElementById("rooms-list");
+      const totalBadge = document.getElementById("total-rooms-badge");
+      const grouped = getGroupedRooms();
+      const myDevice = getMyDevice();
+
+      let roomNames = getOrderedRoomNames(grouped);
+      totalBadge.textContent = roomNames.length;
+
+      if (roomFilterQuery.trim()) {
+        const q = roomFilterQuery.toLowerCase();
+        roomNames = roomNames.filter(name => name.toLowerCase().includes(q));
+      }
+
+      if (!roomNames.length) {
+        container.innerHTML = `<div class="py-8 text-center text-xs text-slate-400">Tidak ada kamar yang cocok dengan "${escapeHTML(roomFilterQuery)}"</div>`;
+        return;
+      }
+
+      container.innerHTML = roomNames.map((name, index) => {
+        const items = grouped[name] || [];
+        const isSelected = name === selectedRoom;
+        const isMyDevice = name === myDevice;
+        const latest = [...items].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+
+        let snippet = "Belum ada berkas/pesan";
+        let timer = "";
+
+        if (latest) {
+          const prefix = latest.sender && latest.sender !== name ? `${latest.sender}: ` : "";
+          if (latest.type === "file") snippet = `${prefix}📎 ${latest.content}`;
+          else if (latest.type === "link") snippet = `${prefix}🔗 ${latest.content}`;
+          else snippet = `${prefix}💬 ${latest.content}`;
+
+          timer = `<span class="js-room-timer text-[10px] font-mono font-bold text-slate-500 flex items-center gap-0.5" data-expires-at="${escapeHTML(latest.expiresAt)}">${formatCountdown(getRemainingSeconds(latest))}</span>`;
+        }
+
+        return `
+          <div data-room-index="${index}" class="js-room-card p-3 rounded-xl cursor-pointer transition-all duration-150 border ${
+            isSelected
+              ? "bg-brand-50/90 border-brand-200 text-brand-950 shadow-xs ring-1 ring-brand-500/20"
+              : "bg-white hover:bg-slate-50 border-slate-200 text-slate-800"
+          }">
+            <div class="flex items-center justify-between gap-2 mb-1.5">
+              <div class="flex items-center gap-2.5 truncate">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs flex-shrink-0 ${isMyDevice ? "bg-brand-600 text-white" : "bg-slate-800 text-white"}">${escapeHTML(name.charAt(0).toUpperCase())}</div>
+                <div class="truncate">
+                  <div class="flex items-center gap-1.5">
+                    <span class="font-bold text-xs truncate">${escapeHTML(name)}</span>
+                    ${isMyDevice ? '<span class="text-[9px] bg-brand-100 text-brand-800 px-1.5 py-0.2 rounded font-bold">Saya</span>' : ""}
+                  </div>
+                  <p class="text-[11px] text-slate-500 truncate mt-0.5">${escapeHTML(snippet)}</p>
+                </div>
+              </div>
+              <div class="flex flex-col items-end flex-shrink-0 gap-1">
+                ${timer}
+                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full ${items.length ? "bg-brand-100 text-brand-800" : "bg-slate-100 text-slate-400"}">${items.length} item</span>
+              </div>
+            </div>
+          </div>`;
+      }).join("");
+
+      const displayedNames = roomNames.slice();
+      container.querySelectorAll(".js-room-card").forEach(card => {
+        card.addEventListener("click", () => {
+          const index = Number(card.dataset.roomIndex);
+          if (displayedNames[index] != null) switchRoom(displayedNames[index]);
+        });
+      });
+    }
+
+    function switchRoom(roomName) {
+      selectedRoom = roomName;
+      mobileRoomOpen = true;
+      renderRoomsList();
+      renderActiveRoomContent();
+      handleResponsiveLayout();
+    }
+
+    function renderActiveRoomContent() {
+      const myDevice = getMyDevice();
+      const headerName = document.getElementById("current-room-name");
+      const headerAvatar = document.getElementById("current-room-avatar");
+      const headerBadge = document.getElementById("current-room-badge");
+      const headerStats = document.getElementById("current-room-stats");
+      const container = document.getElementById("room-messages-container");
+      const emptyState = document.getElementById("empty-room-state");
+
+      headerName.textContent = selectedRoom || "Kamar";
+      headerAvatar.textContent = (selectedRoom || "K").charAt(0).toUpperCase();
+      headerBadge.classList.toggle("hidden", selectedRoom !== myDevice);
+
+      const roomItems = currentItems.filter(item => item.room === selectedRoom);
+      headerStats.textContent = `${roomItems.length} item aktif • kedaluwarsa ${Math.round(serverTtlSeconds / 60)} menit`;
+
+      if (!roomItems.length) {
+        container.innerHTML = "";
+        emptyState.classList.remove("hidden");
+        return;
+      }
+
+      emptyState.classList.add("hidden");
+      const sorted = [...roomItems].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+      container.innerHTML = sorted.map(item => {
+        const remaining = getRemainingSeconds(item);
+        const timeFormatted = new Date(item.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        const senderLabel = item.sender === myDevice ? "Anda" : item.sender;
+
+        return `
+          <div id="card-${escapeHTML(item.id)}" class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs hover:shadow-md transition-all">
+            <div class="flex items-center justify-between gap-2 pb-2 mb-2.5 border-b border-slate-100 text-xs">
+              <div class="flex items-center gap-2 text-slate-500 font-medium min-w-0">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block flex-shrink-0"></span>
+                <span class="truncate">${escapeHTML(senderLabel)} · ${escapeHTML(timeFormatted)}</span>
+              </div>
+              <div class="flex items-center gap-2 flex-shrink-0">
+                <div class="flex items-center gap-1" title="Sisa masa aktif">
+                  <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span class="js-countdown text-[11px] font-mono font-bold px-2 py-0.5 rounded-full ${countdownClass(remaining)}" data-expires-at="${escapeHTML(item.expiresAt)}">${formatCountdown(remaining)}</span>
+                </div>
+                <button data-delete-id="${escapeHTML(item.id)}" class="js-delete-btn p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Hapus item ini sekarang">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div>${renderMessageContent(item)}</div>
+          </div>`;
+      }).join("");
+
+      bindMessageActionButtons();
+    }
+
+    function renderMessageContent(item) {
+      if (item.type === "text") {
+        return `
+          <div class="flex items-start justify-between gap-3">
+            <p class="text-xs sm:text-sm text-slate-800 whitespace-pre-wrap break-words leading-relaxed select-text font-normal">${escapeHTML(item.content)}</p>
+            <button data-copy="${escapeHTML(item.content)}" class="js-copy-btn p-2 text-slate-400 hover:text-brand-600 hover:bg-slate-50 rounded-lg transition flex-shrink-0" title="Salin Teks">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+            </button>
+          </div>`;
+      }
+
+      if (item.type === "link") {
+        const url = item.accessUrl || item.content;
+        const href = isValidURL(url) ? url : "#";
+        return `
+          <div class="bg-indigo-50/70 border border-indigo-100 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex items-start gap-3 overflow-hidden">
+              <div class="w-10 h-10 rounded-lg bg-indigo-600 text-white flex items-center justify-center flex-shrink-0 shadow-xs">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+              </div>
+              <div class="truncate">
+                <h4 class="text-xs sm:text-sm font-bold text-slate-900 truncate">${escapeHTML(item.content)}</h4>
+                <p class="text-[11px] text-indigo-600 truncate mt-0.5 font-mono">${escapeHTML(url)}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <button data-copy="${escapeHTML(url)}" class="js-copy-btn px-3 py-2 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-lg border border-slate-200 transition shadow-xs">Salin</button>
+              <a href="${escapeHTML(href)}" target="_blank" rel="noopener noreferrer" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-1.5 transition">
+                <span>Buka Tautan</span>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+              </a>
+            </div>
+          </div>`;
+      }
+
+      if (item.type === "file") {
+        const ext = (item.content.split(".").pop() || "FILE").toUpperCase();
+        const sizeText = item.fileSize > 0 ? formatBytes(item.fileSize) : "Ukuran tidak tersedia";
+        return `
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex items-start gap-3 overflow-hidden">
+              <div class="w-10 h-10 rounded-lg bg-slate-800 text-white flex flex-col items-center justify-center flex-shrink-0 shadow-xs font-mono">
+                <span class="text-[9px] font-bold uppercase text-amber-400">${escapeHTML(ext.substring(0, 4))}</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              </div>
+              <div class="truncate">
+                <h4 class="text-xs sm:text-sm font-bold text-slate-800 truncate">${escapeHTML(item.content)}</h4>
+                <p class="text-[11px] text-slate-500 mt-0.5">${escapeHTML(sizeText)} • tersedia sementara</p>
+              </div>
+            </div>
+            <a href="${escapeHTML(item.accessUrl || "#")}" target="_blank" rel="noopener noreferrer" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-lg shadow-sm flex items-center justify-center gap-1.5 transition flex-shrink-0">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+              <span>Unduh Berkas</span>
+            </a>
+          </div>`;
+      }
+
+      return "";
+    }
+
+    function bindMessageActionButtons() {
+      document.querySelectorAll(".js-delete-btn").forEach(btn => {
+        btn.addEventListener("click", () => handleDeleteItem(btn.dataset.deleteId));
+      });
+
+      document.querySelectorAll(".js-copy-btn").forEach(btn => {
+        btn.addEventListener("click", () => copyToClipboard(btn.dataset.copy || ""));
+      });
+    }
+
+    // ================================================================
+    // COUNTDOWN
+    // ================================================================
+    function countdownClass(seconds) {
+      return seconds < 120
+        ? "bg-rose-100 text-rose-700 border border-rose-200 animate-pulse"
+        : "bg-slate-100 text-slate-600 border border-slate-200";
+    }
+
+    function formatCountdown(seconds) {
+      const value = Math.max(0, Math.floor(Number(seconds) || 0));
+      const mins = String(Math.floor(value / 60)).padStart(2, "0");
+      const secs = String(value % 60).padStart(2, "0");
+      return `${mins}:${secs}`;
+    }
+
+    function startCountdownTimer() {
+      if (countdownInterval) clearInterval(countdownInterval);
+
+      countdownInterval = setInterval(() => {
+        let hasExpired = false;
+
+        document.querySelectorAll(".js-countdown, .js-room-timer").forEach(el => {
+          const expiresMs = Date.parse(el.dataset.expiresAt || "");
+          if (!Number.isFinite(expiresMs)) return;
+          const remaining = Math.max(0, Math.floor((expiresMs - serverNowMs()) / 1000));
+          el.textContent = formatCountdown(remaining);
+
+          if (el.classList.contains("js-countdown") && remaining < 120) {
+            el.className = `js-countdown text-[11px] font-mono font-bold px-2 py-0.5 rounded-full ${countdownClass(remaining)}`;
+            el.dataset.expiresAt = new Date(expiresMs).toISOString();
+          }
+
+          if (remaining <= 0) hasExpired = true;
+        });
+
+        if (hasExpired) {
+          filterExpiredLocally();
+          refreshFullUI();
+        }
+      }, 1000);
+    }
+
+    // ================================================================
+    // FILE
+    // ================================================================
+    function handleFileSelected(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      if (file.size > serverMaxFileBytes) {
+        showToast(`Ukuran file ${formatBytes(file.size)} melebihi batas ${formatBytes(serverMaxFileBytes)}.`, "⚠️");
+        e.target.value = "";
+        return;
+      }
+
+      selectedFile = file;
+      selectedFileBase64 = null;
+
+      document.getElementById("file-preview-name").textContent = file.name;
+      document.getElementById("file-preview-size").textContent = formatBytes(file.size);
+      document.getElementById("file-preview-bar").classList.remove("hidden");
+      document.getElementById("message-input").placeholder = "File terpilih. Tekan Kirim untuk mengunggah...";
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        selectedFileBase64 = String(event.target.result || "").split(",")[1] || "";
+      };
+      reader.onerror = () => {
+        cancelSelectedFile();
+        showToast("Berkas tidak dapat dibaca oleh browser", "❌");
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function cancelSelectedFile() {
+      selectedFile = null;
+      selectedFileBase64 = null;
+      document.getElementById("file-input").value = "";
+      document.getElementById("file-preview-bar").classList.add("hidden");
+      document.getElementById("message-input").placeholder = "Tulis pesan atau tempel tautan di kamar ini...";
+    }
+
+    // ================================================================
+    // SEND
+    // ================================================================
+    async function handleSendMessage() {
+      if (isSubmitting) return;
+
+      const input = document.getElementById("message-input");
+      const textVal = input.value.trim();
+      const sender = (document.getElementById("device-name-input").value || "").trim() || getMyDevice();
+      const room = selectedRoom || sender;
+
+      if (!textVal && !selectedFile) {
+        showToast("Tulis pesan atau lampirkan berkas terlebih dahulu", "ℹ️");
+        return;
+      }
+
+      if (selectedFile && !selectedFileBase64) {
+        showToast("Berkas masih sedang disiapkan. Coba tekan Kirim lagi.", "⏳");
+        return;
+      }
+
+      let type = "text";
+      let content = textVal;
+      let accessUrl = "";
+
+      if (selectedFile) {
+        type = "file";
+        content = selectedFile.name;
+      } else if (isValidURL(textVal)) {
+        type = "link";
+        content = textVal;
+        accessUrl = textVal;
+      }
+
+      setSubmittingState(true);
+
+      try {
+          setSyncStatus("syncing", "Mengirim data...");
+          const data = await postToGAS({
+            action: "send",
+            room,
+            sender,
+            type,
+            content,
+            accessUrl,
+            fileBase64: selectedFileBase64 || "",
+            fileName: selectedFile ? selectedFile.name : "",
+            fileMimeType: selectedFile ? selectedFile.type : ""
+          });
+
+          if (data.item) {
+            currentItems.unshift(normalizeItem(data.item));
+            filterExpiredLocally();
+            refreshFullUI();
+          }
+
+          input.value = "";
+          cancelSelectedFile();
+          showToast(`Terkirim ke kamar ${room}`, "🚀");
+          await fetchFromGAS({ silent: true });
+      } catch (err) {
+        console.error(err);
+        setSyncStatus("offline", "Gagal mengirim ke backend");
+        showToast(err.message || "Gagal mengirim data", "❌");
+      } finally {
+        setSubmittingState(false);
+      }
+    }
+
+    // ================================================================
+    // DELETE / CLEAR ROOM
+    // ================================================================
+    async function handleDeleteItem(messageId) {
+      const card = document.getElementById(`card-${messageId}`);
+      if (card) card.classList.add("opacity-40");
+      try {
+        await postToGAS({ action: "delete", messageId });
+        currentItems = currentItems.filter(item => item.id !== messageId);
+        refreshFullUI();
+        showToast("Item berhasil dihapus", "🗑️");
+      } catch (err) {
+        if (card) card.classList.remove("opacity-40");
+        console.error("Gagal menghapus item:", err);
+        showToast(err.message || "Gagal menghapus item", "❌");
+      }
+    }
+
+    async function handleClearCurrentRoom() {
+      const room = selectedRoom;
+      const roomItems = currentItems.filter(item => item.room === room);
+
+      if (!roomItems.length) {
+        showToast("Kamar ini sudah kosong", "ℹ️");
+        return;
+      }
+
+      if (!window.confirm(`Bersihkan ${roomItems.length} item dari kamar "${room}"?`)) return;
+      try {
+        const data = await postToGAS({ action: "clearRoom", room });
+        const deletedCount = Number(data.deletedCount || 0);
+        currentItems = currentItems.filter(item => item.room !== room);
+        refreshFullUI();
+        showToast(`${deletedCount} item dibersihkan dari kamar ${room}`, "🧹");
+      } catch (err) {
+        console.error("Gagal membersihkan kamar:", err);
+        showToast(err.message || "Gagal membersihkan kamar", "❌");
+      }
+    }
+
+    // ================================================================
+    // RESPONSIVE
+    // ================================================================
+    function handleResponsiveLayout() {
+      const sidebar = document.getElementById("rooms-sidebar");
+      const pane = document.getElementById("room-content-pane");
+
+      if (window.innerWidth >= 768) {
+        sidebar.classList.remove("hidden");
+        pane.classList.remove("hidden");
+        pane.classList.add("flex");
+        return;
+      }
+
+      if (mobileRoomOpen) {
+        sidebar.classList.add("hidden");
+        pane.classList.remove("hidden");
+        pane.classList.add("flex");
+      } else {
+        sidebar.classList.remove("hidden");
+        pane.classList.add("hidden");
+        pane.classList.remove("flex");
+      }
+    }
+
+    // ================================================================
+    // EVENT LISTENERS
+    // ================================================================
+    function setupEventListeners() {
+      document.getElementById("btn-cancel-file").addEventListener("click", cancelSelectedFile);
+      document.getElementById("btn-clear-current-room").addEventListener("click", handleClearCurrentRoom);
+
+      document.getElementById("search-room-input").addEventListener("input", (e) => {
+        roomFilterQuery = e.target.value;
+        renderRoomsList();
+      });
+
+      document.getElementById("btn-back-to-rooms").addEventListener("click", () => {
+        mobileRoomOpen = false;
+        handleResponsiveLayout();
+      });
+
+      document.getElementById("btn-paste-clipboard").addEventListener("click", async () => {
+        try {
+          if (navigator.clipboard && navigator.clipboard.readText) {
+            const text = await navigator.clipboard.readText();
+            if (text) {
+              const input = document.getElementById("message-input");
+              input.value = text;
+              input.focus();
+              showToast("Teks ditempel dari clipboard", "📋");
+            }
+          } else {
+            document.getElementById("message-input").focus();
+            showToast("Gunakan Ctrl+V / Tempel", "ℹ️");
+          }
+        } catch (_) {
+          document.getElementById("message-input").focus();
+          showToast("Akses clipboard dibatasi browser", "ℹ️");
+        }
+      });
+
+      window.addEventListener("resize", handleResponsiveLayout);
+      window.addEventListener("orientationchange", handleResponsiveLayout);
+    }
+
+    // ================================================================
+    // UTILITAS UI
+    // ================================================================
+    function setSubmittingState(loading) {
+      isSubmitting = loading;
+      const btnText = document.getElementById("btn-send-text");
+      const btnIcon = document.getElementById("btn-send-icon");
+      const btnSpinner = document.getElementById("btn-send-spinner");
+      const btnSend = document.getElementById("btn-send");
+
+      if (loading) {
+        btnText.textContent = "Mengirim...";
+        btnIcon.classList.add("hidden");
+        btnSpinner.classList.remove("hidden");
+        btnSend.disabled = true;
+        btnSend.classList.add("opacity-75", "cursor-not-allowed");
+      } else {
+        btnText.textContent = "Kirim";
+        btnIcon.classList.remove("hidden");
+        btnSpinner.classList.add("hidden");
+        btnSend.disabled = false;
+        btnSend.classList.remove("opacity-75", "cursor-not-allowed");
+      }
+    }
+
+    function isValidURL(value) {
+      try {
+        const url = new URL(String(value || ""));
+        return url.protocol === "http:" || url.protocol === "https:";
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function formatBytes(bytes, decimals = 1) {
+      const number = Number(bytes || 0);
+      if (!number) return "0 Bytes";
+      const units = ["Bytes", "KB", "MB", "GB"];
+      const index = Math.min(Math.floor(Math.log(number) / Math.log(1024)), units.length - 1);
+      const value = number / (1024 ** index);
+      return `${parseFloat(value.toFixed(index === 0 ? 0 : decimals))} ${units[index]}`;
+    }
+
+    async function copyToClipboard(text) {
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          const textarea = document.createElement("textarea");
+          textarea.value = text;
+          textarea.style.position = "fixed";
+          textarea.style.opacity = "0";
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand("copy");
+          textarea.remove();
+        }
+        showToast("Disalin ke clipboard", "📋");
+      } catch (_) {
+        showToast("Gagal menyalin", "❌");
+      }
+    }
+
+    function showToast(message, icon = "ℹ️") {
+      const toast = document.getElementById("toast");
+      document.getElementById("toast-message").textContent = message;
+      document.getElementById("toast-icon").textContent = icon;
+      toast.classList.remove("-translate-y-20", "opacity-0");
+      toast.classList.add("translate-y-0", "opacity-100");
+
+      clearTimeout(showToast._timer);
+      showToast._timer = setTimeout(() => {
+        toast.classList.add("-translate-y-20", "opacity-0");
+        toast.classList.remove("translate-y-0", "opacity-100");
+      }, 3000);
+    }
+
+    function escapeHTML(value) {
+      return String(value == null ? "" : value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>
