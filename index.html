@@ -92,8 +92,8 @@
       <div class="flex items-center gap-2">
         <div class="flex items-center bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 gap-2">
           <div class="w-8 h-8 rounded-full bg-slate-200 border border-slate-300 flex items-center justify-center flex-shrink-0 overflow-hidden" title="Identitas akun sementara">
-            <svg class="w-5 h-5 text-slate-500" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M12 12c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5Zm0 2c-4.418 0-8 2.686-8 6 0 1.105.895 2 2 2h12c1.105 0 2-.895 2-2 0-3.314-3.582-6-8-6Z"/>
+            <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 7a3 3 0 11-6 0 3 3 0 016 0ZM5.5 20a6.5 6.5 0 0113 0"/>
             </svg>
           </div>
           <div class="flex flex-col">
@@ -162,6 +162,19 @@
 
     <!-- ================= PANEL KANAN: ISI KAMAR TERPILIH ================= -->
     <section id="room-content-pane" class="hidden md:flex flex-1 flex-col bg-slate-100 overflow-hidden relative">
+
+      <!-- Overlay drag & drop file -->
+      <div id="drop-overlay" class="hidden absolute inset-0 z-50 bg-indigo-50/95 backdrop-blur-[2px] border-2 border-dashed border-indigo-400 items-center justify-center pointer-events-none">
+        <div class="text-center px-6">
+          <div class="w-16 h-16 mx-auto rounded-2xl bg-white border border-indigo-200 text-indigo-600 flex items-center justify-center shadow-sm mb-3">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 16V4m0 0-4 4m4-4 4 4M5 14v4a2 2 0 002 2h10a2 2 0 002-2v-4"/>
+            </svg>
+          </div>
+          <p class="text-sm font-bold text-indigo-950">Lepaskan file di sini</p>
+          <p class="text-xs text-indigo-700 mt-1">File akan dilampirkan dan belum dikirim sampai Anda menekan Kirim.</p>
+        </div>
+      </div>
       
       <!-- Header Kamar Terpilih -->
       <div id="room-header" class="bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between shadow-xs z-10">
@@ -194,7 +207,7 @@
             <div class="flex items-center gap-1 bg-indigo-50 border border-indigo-200 rounded-lg px-2 py-1.5 text-[10px] sm:text-xs text-indigo-800" title="PIN universal ruang Anda">
               <span class="font-semibold hidden sm:inline">PIN</span>
               <span id="owner-pin-display" class="font-mono font-bold tracking-wider">••••••</span>
-              <button id="btn-toggle-owner-pin" type="button" class="p-0.5 rounded hover:bg-indigo-100 transition" title="Lihat / sembunyikan PIN">👁️</button>
+              <button id="btn-toggle-owner-pin" type="button" class="p-0.5 rounded hover:bg-indigo-100 transition" title="Lihat / sembunyikan PIN"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5" stroke-width="1.8"/></svg></button>
             </div>
             <button id="btn-change-room-pin" type="button" class="px-2 py-1.5 text-[10px] sm:text-xs text-indigo-700 hover:bg-indigo-50 border border-indigo-200 rounded-lg font-semibold transition">Ganti</button>
           </div>
@@ -322,8 +335,8 @@
     <div class="w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
       <div class="px-5 pt-5 pb-3">
         <div class="w-11 h-11 rounded-xl bg-brand-100 text-brand-700 flex items-center justify-center mb-3">
-          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M12 12c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5Zm0 2c-4.418 0-8 2.686-8 6 0 1.105.895 2 2 2h12c1.105 0 2-.895 2-2 0-3.314-3.582-6-8-6Z"/>
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 7a3 3 0 11-6 0 3 3 0 016 0ZM5.5 20a6.5 6.5 0 0113 0"/>
           </svg>
         </div>
         <h3 class="text-base font-bold text-slate-900">Buat Identitas Sementara</h3>
@@ -357,7 +370,7 @@
               class="w-full border border-slate-300 rounded-xl px-3.5 py-3 pr-12 text-center font-mono font-bold tracking-[0.35em] text-lg outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500"
               placeholder="••••••"
             />
-            <button id="btn-toggle-account-pin" type="button" class="absolute right-2.5 top-1/2 -translate-y-1/2 p-2 text-slate-500 hover:text-brand-700 rounded-lg hover:bg-brand-50" title="Lihat / sembunyikan PIN">👁️</button>
+            <button id="btn-toggle-account-pin" type="button" class="absolute right-2.5 top-1/2 -translate-y-1/2 p-2 text-slate-500 hover:text-brand-700 rounded-lg hover:bg-brand-50" title="Lihat / sembunyikan PIN"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5" stroke-width="1.8"/></svg></button>
           </div>
         </div>
 
@@ -394,7 +407,7 @@
             class="w-full border border-slate-300 rounded-xl px-3.5 py-3 pr-12 text-center font-mono font-bold tracking-[0.35em] text-lg outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
             placeholder="••••••"
           />
-          <button id="btn-toggle-pin-modal" type="button" class="absolute right-2.5 top-1/2 -translate-y-1/2 p-2 text-slate-500 hover:text-indigo-700 rounded-lg hover:bg-indigo-50" title="Lihat / sembunyikan PIN">👁️</button>
+          <button id="btn-toggle-pin-modal" type="button" class="absolute right-2.5 top-1/2 -translate-y-1/2 p-2 text-slate-500 hover:text-indigo-700 rounded-lg hover:bg-indigo-50" title="Lihat / sembunyikan PIN"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5" stroke-width="1.8"/></svg></button>
         </div>
         <p id="pin-modal-error" class="hidden text-xs text-rose-600 mt-2"></p>
 
@@ -409,7 +422,7 @@
   <!-- ==================== 3. TOAST NOTIFIKASI ==================== -->
   <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 transform -translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
     <div class="bg-slate-900/95 backdrop-blur text-white text-xs md:text-sm px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 border border-slate-700">
-      <span id="toast-icon">ℹ️</span>
+      <span id="toast-icon" class="inline-flex flex-shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="1.8"/><path stroke-linecap="round" stroke-width="1.8" d="M12 10.5V16M12 7.5h.01"/></svg></span>
       <span id="toast-message">Pesan notifikasi</span>
     </div>
   </div>
@@ -418,7 +431,7 @@
   <script>
     // ================================================================
     // ChatSofyan - Frontend GitHub Pages
-    // ChatSofyan Revisi 012 - GitHub Pages
+    // ChatSofyan Revisi 013 - GitHub Pages
     // ================================================================
 
     const APP_CONFIG = Object.freeze({
@@ -466,6 +479,9 @@
     let serverMaxFileBytes = APP_CONFIG.DEFAULT_MAX_FILE_BYTES;
     let syncInFlight = false;
     let mobileRoomOpen = false;
+    let dragDepth = 0;
+    let forceScrollToBottom = false;
+    let lastRenderedRoom = "";
 
     const STORAGE_KEY_ACCOUNT_USERNAME = "chatsofyan_account_username_v1";
     const STORAGE_KEY_ACCOUNT_OWNER_TOKEN = "chatsofyan_account_owner_token_v1";
@@ -691,7 +707,7 @@
         hideAccountModal();
         updateAccountHeader();
         refreshFullUI();
-        showToast(`Akun ${accountState.username} aktif selama 12 jam`, "✅");
+        showToast(`Akun ${accountState.username} aktif selama 12 jam`, "check");
 
         // Jangan bergantung pada sync yang mungkin sudah dimulai sebelum akun dibuat.
         // Jika ada sync lama yang masih berjalan, jadwalkan sync baru setelahnya.
@@ -997,7 +1013,7 @@
 
           if (selectedRoomAccess.exists && !selectedRoomAccess.authorized && roomAccessTokens.has(selectedRoom)) {
             roomAccessTokens.delete(selectedRoom);
-            if (wasAuthorized) showToast("Akses ruang berubah. Masukkan PIN kembali.", "🔒");
+            if (wasAuthorized) showToast("Akses ruang berubah. Masukkan PIN kembali.", "lock");
           }
         }
 
@@ -1117,16 +1133,16 @@
         const count = Number(room.count || 0);
 
         let statusText = "Ruang terkunci";
-        let statusIcon = "🔒";
+        let statusIcon = "lock";
         if (isOwner) {
           statusText = "Ruang Anda";
-          statusIcon = "🔐";
+          statusIcon = "shield-check";
         } else if (!room.isProtected) {
           statusText = "Ruang belum memiliki PIN";
-          statusIcon = "⚠️";
+          statusIcon = "warning";
         } else if (isUnlocked) {
           statusText = "PIN terverifikasi pada sesi ini";
-          statusIcon = "🔓";
+          statusIcon = "unlock";
         }
 
         return `
@@ -1143,7 +1159,7 @@
                     <span class="font-bold text-xs truncate">${escapeHTML(name)}</span>
                     ${isOwner ? '<span class="text-[9px] bg-brand-100 text-brand-800 px-1.5 py-0.2 rounded font-bold">Saya</span>' : ""}
                   </div>
-                  <p class="text-[11px] text-slate-500 truncate mt-0.5">${statusIcon} ${escapeHTML(statusText)}</p>
+                  <p class="text-[11px] text-slate-500 truncate mt-0.5 flex items-center gap-1">${iconSvg(statusIcon, "w-3.5 h-3.5 flex-shrink-0")}<span class="truncate">${escapeHTML(statusText)}</span></p>
                 </div>
               </div>
               <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full ${count ? "bg-brand-100 text-brand-800" : "bg-slate-100 text-slate-400"}">${count} kiriman</span>
@@ -1162,6 +1178,7 @@
     async function switchRoom(roomName) {
       selectedRoom = roomName;
       mobileRoomOpen = true;
+      forceScrollToBottom = true;
       currentItems = [];
       ownerPinVisible = false;
 
@@ -1186,6 +1203,10 @@
     }
 
     function setComposerEnabled(enabled) {
+      if (!enabled) {
+        dragDepth = 0;
+        setDropOverlayVisible(false);
+      }
       const ids = ["file-input", "btn-attach-file", "message-input", "btn-send", "btn-paste-clipboard"];
       ids.forEach(id => {
         const el = document.getElementById(id);
@@ -1211,6 +1232,7 @@
       if (!isOwner) return;
       const storedPin = getStoredRoomPin(selectedRoom);
       display.textContent = ownerPinVisible && storedPin ? storedPin : "••••••";
+      toggle.innerHTML = iconSvg(ownerPinVisible ? "eye-off" : "eye", "w-3.5 h-3.5");
     }
 
     function renderActiveRoomContent() {
@@ -1222,6 +1244,9 @@
       const container = document.getElementById("room-messages-container");
       const emptyState = document.getElementById("empty-room-state");
       const clearBtn = document.getElementById("btn-clear-current-room");
+      const scrollArea = document.getElementById("messages-scroll-area");
+      const roomChanged = lastRenderedRoom !== selectedRoom;
+      const wasNearBottom = !scrollArea || (scrollArea.scrollHeight - scrollArea.scrollTop - scrollArea.clientHeight < 96);
       const summary = getRoomSummary(selectedRoom) || { count: 0, isProtected: false };
 
       headerName.textContent = selectedRoom || "Ruang";
@@ -1240,7 +1265,7 @@
         headerStats.textContent = "Buat identitas sementara untuk mulai";
         container.innerHTML = `
           <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 text-center">
-            <div class="text-3xl mb-2">👤</div>
+            <div class="w-12 h-12 mx-auto rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center mb-3">${iconSvg("user", "w-6 h-6")}</div>
             <h3 class="font-bold text-slate-800 text-sm">Belum Ada Akun Aktif</h3>
             <p class="text-xs text-slate-500 mt-1">Buat username dan PIN 6 digit untuk menggunakan ChatSofyan selama 12 jam.</p>
           </div>`;
@@ -1253,7 +1278,7 @@
         headerStats.textContent = `${count} kiriman • ruang tidak memiliki PIN`;
         container.innerHTML = `
           <div class="bg-white rounded-2xl border border-amber-200 shadow-sm p-6 text-center">
-            <div class="text-3xl mb-2">⚠️</div>
+            <div class="w-12 h-12 mx-auto rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-3">${iconSvg("warning", "w-6 h-6")}</div>
             <h3 class="font-bold text-slate-800 text-sm">Ruang Tidak Memiliki PIN</h3>
             <p class="text-xs text-slate-500 mt-1">Ruang lama ini belum memiliki data keamanan yang dapat digunakan.</p>
           </div>`;
@@ -1266,7 +1291,7 @@
         headerStats.textContent = `${count} kiriman • terlindungi PIN`;
         container.innerHTML = `
           <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 text-center">
-            <div class="w-14 h-14 mx-auto rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center mb-3 text-2xl">🔒</div>
+            <div class="w-14 h-14 mx-auto rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center mb-3">${iconSvg("lock", "w-7 h-7")}</div>
             <h3 class="font-bold text-slate-800 text-sm">Ruang Terkunci</h3>
             <p class="text-xs text-slate-500 mt-1">Masukkan PIN 6 digit untuk melihat isi ruang ${escapeHTML(selectedRoom)}.</p>
             <button id="btn-unlock-room-inline" class="mt-4 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg">Masukkan PIN</button>
@@ -1285,7 +1310,7 @@
       }
 
       emptyState.classList.add("hidden");
-      const sorted = [...roomItems].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      const sorted = [...roomItems].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
       container.innerHTML = sorted.map(item => {
         const remaining = getRemainingSeconds(item);
@@ -1318,6 +1343,14 @@
       }).join("");
 
       bindMessageActionButtons();
+      lastRenderedRoom = selectedRoom;
+      requestAnimationFrame(() => {
+        if (!scrollArea) return;
+        if (roomChanged || forceScrollToBottom || wasNearBottom) {
+          scrollArea.scrollTop = scrollArea.scrollHeight;
+        }
+        forceScrollToBottom = false;
+      });
     }
 
     function renderMessageContent(item) {
@@ -1455,7 +1488,7 @@
       pinModalState = { mode, room, pendingAction };
       input.value = "";
       input.type = "password";
-      document.getElementById("btn-toggle-pin-modal").textContent = "👁️";
+      document.getElementById("btn-toggle-pin-modal").innerHTML = iconSvg("eye", "w-4 h-4");
       error.textContent = "";
       error.classList.add("hidden");
 
@@ -1516,7 +1549,7 @@
           patchRoomSummarySecurity(room, { isProtected: true, isOwner: false });
           closePinModal();
           refreshFullUI();
-          showToast(`Ruang ${room} berhasil dibuka`, "🔓");
+          showToast(`Ruang ${room} berhasil dibuka`, "unlock");
           await fetchFromGAS({ silent: false });
         } else if (mode === "change") {
           await postToGAS({
@@ -1532,7 +1565,7 @@
           ownerPinVisible = false;
           closePinModal();
           refreshFullUI();
-          showToast("PIN baru aktif. Akses lama perangkat lain dibatalkan.", "✅");
+          showToast("PIN baru aktif. Akses lama perangkat lain dibatalkan.", "check");
           await fetchFromGAS({ silent: false });
         }
 
@@ -1553,11 +1586,16 @@
     function handleFileSelected(e) {
       const file = e.target.files[0];
       if (!file) return;
+      prepareSelectedFile(file);
+    }
+
+    function prepareSelectedFile(file) {
+      if (!file) return false;
 
       if (file.size > serverMaxFileBytes) {
-        showToast(`Ukuran file ${formatBytes(file.size)} melebihi batas ${formatBytes(serverMaxFileBytes)}.`, "⚠️");
-        e.target.value = "";
-        return;
+        showToast(`Ukuran file ${formatBytes(file.size)} melebihi batas ${formatBytes(serverMaxFileBytes)}.`, "warning");
+        document.getElementById("file-input").value = "";
+        return false;
       }
 
       selectedFile = file;
@@ -1574,9 +1612,75 @@
       };
       reader.onerror = () => {
         cancelSelectedFile();
-        showToast("File tidak dapat dibaca", "❌");
+        showToast("File tidak dapat dibaca", "error");
       };
       reader.readAsDataURL(file);
+      return true;
+    }
+
+    function isFileDrag(event) {
+      const types = event?.dataTransfer?.types;
+      return !!types && Array.from(types).includes("Files");
+    }
+
+    function canAcceptFileDrop() {
+      return !!(accountState.active && selectedRoom && selectedRoomAccess.authorized);
+    }
+
+    function setDropOverlayVisible(visible) {
+      const overlay = document.getElementById("drop-overlay");
+      if (!overlay) return;
+      overlay.classList.toggle("hidden", !visible);
+      overlay.classList.toggle("flex", visible);
+    }
+
+    function setupDragAndDrop() {
+      const pane = document.getElementById("room-content-pane");
+      if (!pane) return;
+
+      pane.addEventListener("dragenter", (event) => {
+        if (!isFileDrag(event)) return;
+        event.preventDefault();
+        if (!canAcceptFileDrop()) return;
+        dragDepth += 1;
+        setDropOverlayVisible(true);
+      });
+
+      pane.addEventListener("dragover", (event) => {
+        if (!isFileDrag(event)) return;
+        event.preventDefault();
+        if (event.dataTransfer) event.dataTransfer.dropEffect = canAcceptFileDrop() ? "copy" : "none";
+      });
+
+      pane.addEventListener("dragleave", (event) => {
+        if (!isFileDrag(event)) return;
+        dragDepth = Math.max(0, dragDepth - 1);
+        if (dragDepth === 0) setDropOverlayVisible(false);
+      });
+
+      pane.addEventListener("drop", (event) => {
+        if (!isFileDrag(event)) return;
+        event.preventDefault();
+        dragDepth = 0;
+        setDropOverlayVisible(false);
+
+        if (!canAcceptFileDrop()) {
+          showToast("Buka ruang terlebih dahulu sebelum melampirkan file.", "lock");
+          return;
+        }
+
+        const files = Array.from(event.dataTransfer?.files || []);
+        if (!files.length) return;
+        if (files.length > 1) {
+          showToast("Satu file per kiriman. File pertama dipilih.", "info");
+        }
+        prepareSelectedFile(files[0]);
+      });
+
+      window.addEventListener("dragend", () => {
+        dragDepth = 0;
+        setDropOverlayVisible(false);
+      });
     }
 
     function cancelSelectedFile() {
@@ -1604,12 +1708,12 @@
       const room = selectedRoom || sender;
 
       if (!textVal && !selectedFile) {
-        showToast("Tulis pesan atau lampirkan file terlebih dahulu", "ℹ️");
+        showToast("Tulis pesan atau lampirkan file terlebih dahulu", "info");
         return;
       }
 
       if (!selectedRoomAccess.exists) {
-        showToast("Ruang ini tidak memiliki PIN yang dapat digunakan.", "🔒");
+        showToast("Ruang ini tidak memiliki PIN yang dapat digunakan.", "lock");
         return;
       }
 
@@ -1619,7 +1723,7 @@
       }
 
       if (selectedFile && !selectedFileBase64) {
-        showToast("File sedang disiapkan. Coba tekan Kirim lagi.", "⏳");
+        showToast("File sedang disiapkan. Coba tekan Kirim lagi.", "clock");
         return;
       }
 
@@ -1655,19 +1759,20 @@
         });
 
         if (data.item) {
-          currentItems.unshift(normalizeItem(data.item));
+          currentItems.push(normalizeItem(data.item));
           filterExpiredLocally();
+          forceScrollToBottom = true;
           refreshFullUI();
         }
 
         input.value = "";
         cancelSelectedFile();
-        showToast(`Terkirim ke ruang ${room}`, "🚀");
+        showToast(`Terkirim ke ruang ${room}`, "send");
         await fetchFromGAS({ silent: true });
       } catch (err) {
         console.error(err);
         setSyncStatus("offline", "Gagal mengirim");
-        showToast(err.message || "Gagal mengirim", "❌");
+        showToast(err.message || "Gagal mengirim", "error");
         await fetchFromGAS({ silent: true });
       } finally {
         setSubmittingState(false);
@@ -1689,12 +1794,12 @@
         });
         currentItems = currentItems.filter(item => item.id !== messageId);
         refreshFullUI();
-        showToast("Kiriman berhasil dihapus", "🗑️");
+        showToast("Kiriman berhasil dihapus", "trash");
         await fetchFromGAS({ silent: true });
       } catch (err) {
         if (card) card.classList.remove("opacity-40");
         console.error("Gagal menghapus kiriman:", err);
-        showToast(err.message || "Gagal menghapus kiriman", "❌");
+        showToast(err.message || "Gagal menghapus kiriman", "error");
         await fetchFromGAS({ silent: true });
       }
     }
@@ -1704,12 +1809,12 @@
       const roomItems = currentItems.filter(item => item.room === room);
 
       if (!selectedRoomAccess.authorized) {
-        showToast("Ruang masih terkunci.", "🔒");
+        showToast("Ruang masih terkunci.", "lock");
         return;
       }
 
       if (!roomItems.length) {
-        showToast("Ruang ini sudah kosong", "ℹ️");
+        showToast("Ruang ini sudah kosong", "info");
         return;
       }
 
@@ -1724,11 +1829,11 @@
         const deletedCount = Number(data.deletedCount || 0);
         currentItems = [];
         refreshFullUI();
-        showToast(`${deletedCount} kiriman dihapus dari ruang ${room}`, "🧹");
+        showToast(`${deletedCount} kiriman dihapus dari ruang ${room}`, "trash");
         await fetchFromGAS({ silent: true });
       } catch (err) {
         console.error("Gagal menghapus semua kiriman:", err);
-        showToast(err.message || "Gagal menghapus semua kiriman", "❌");
+        showToast(err.message || "Gagal menghapus semua kiriman", "error");
         await fetchFromGAS({ silent: true });
       }
     }
@@ -1764,11 +1869,12 @@
     function setupEventListeners() {
       document.getElementById("btn-cancel-file").addEventListener("click", cancelSelectedFile);
       document.getElementById("btn-clear-current-room").addEventListener("click", handleClearCurrentRoom);
+      setupDragAndDrop();
 
       document.getElementById("btn-toggle-owner-pin").addEventListener("click", () => {
         const storedPin = getStoredRoomPin(selectedRoom);
         if (!storedPin) {
-          showToast("PIN tidak tersimpan di browser ini. Gunakan Ganti PIN.", "ℹ️");
+          showToast("PIN tidak tersimpan di browser ini. Gunakan Ganti PIN.", "info");
           return;
         }
         ownerPinVisible = !ownerPinVisible;
@@ -1794,7 +1900,7 @@
         const input = document.getElementById("pin-modal-input");
         const btn = document.getElementById("btn-toggle-pin-modal");
         input.type = input.type === "password" ? "text" : "password";
-        btn.textContent = input.type === "password" ? "👁️" : "🙈";
+        btn.innerHTML = iconSvg(input.type === "password" ? "eye" : "eye-off", "w-4 h-4");
         input.focus();
       });
 
@@ -1813,7 +1919,7 @@
         const input = document.getElementById("account-pin-input");
         const btn = document.getElementById("btn-toggle-account-pin");
         input.type = input.type === "password" ? "text" : "password";
-        btn.textContent = input.type === "password" ? "👁️" : "🙈";
+        btn.innerHTML = iconSvg(input.type === "password" ? "eye" : "eye-off", "w-4 h-4");
         input.focus();
       });
       document.getElementById("search-room-input").addEventListener("input", (e) => {
@@ -1834,20 +1940,44 @@
               const input = document.getElementById("message-input");
               input.value = text;
               input.focus();
-              showToast("Teks berhasil ditempel", "📋");
+              showToast("Teks berhasil ditempel", "copy");
             }
           } else {
             document.getElementById("message-input").focus();
-            showToast("Gunakan Ctrl+V / Tempel", "ℹ️");
+            showToast("Gunakan Ctrl+V / Tempel", "info");
           }
         } catch (_) {
           document.getElementById("message-input").focus();
-          showToast("Tempel otomatis tidak tersedia", "ℹ️");
+          showToast("Tempel otomatis tidak tersedia", "info");
         }
       });
 
       window.addEventListener("resize", handleResponsiveLayout);
       window.addEventListener("orientationchange", handleResponsiveLayout);
+    }
+
+    // ================================================================
+    // IKON LINE ART MINIMALIS
+    // ================================================================
+    function iconSvg(name, className = "w-4 h-4") {
+      const common = `class="${className}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"`;
+      const icons = {
+        info: `<svg ${common}><circle cx="12" cy="12" r="9" stroke-width="1.8"/><path stroke-linecap="round" stroke-width="1.8" d="M12 10.5V16M12 7.5h.01"/></svg>`,
+        check: `<svg ${common}><circle cx="12" cy="12" r="9" stroke-width="1.8"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m8.5 12 2.2 2.2 4.8-5"/></svg>`,
+        error: `<svg ${common}><circle cx="12" cy="12" r="9" stroke-width="1.8"/><path stroke-linecap="round" stroke-width="1.8" d="m9 9 6 6m0-6-6 6"/></svg>`,
+        warning: `<svg ${common}><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M10.3 4.4 2.8 17.2A1.9 1.9 0 004.4 20h15.2a1.9 1.9 0 001.6-2.8L13.7 4.4a2 2 0 00-3.4 0Z"/><path stroke-linecap="round" stroke-width="1.8" d="M12 9v4m0 3h.01"/></svg>`,
+        lock: `<svg ${common}><rect x="5" y="10" width="14" height="10" rx="2" stroke-width="1.8"/><path stroke-linecap="round" stroke-width="1.8" d="M8 10V7a4 4 0 018 0v3M12 14v2"/></svg>`,
+        unlock: `<svg ${common}><rect x="5" y="10" width="14" height="10" rx="2" stroke-width="1.8"/><path stroke-linecap="round" stroke-width="1.8" d="M8 10V7a4 4 0 017.4-2M12 14v2"/></svg>`,
+        "shield-check": `<svg ${common}><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3 5 6v5c0 4.7 2.8 8 7 10 4.2-2 7-5.3 7-10V6l-7-3Z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m9 12 2 2 4-4"/></svg>`,
+        eye: `<svg ${common}><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5" stroke-width="1.8"/></svg>`,
+        "eye-off": `<svg ${common}><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m3 3 18 18M10.7 6.1A10.6 10.6 0 0112 6c6 0 9.5 6 9.5 6a15 15 0 01-2.2 2.8M6.4 6.5C3.8 8.3 2.5 12 2.5 12s3.5 6 9.5 6c1.3 0 2.5-.3 3.5-.7M9.9 9.9a3 3 0 004.2 4.2"/></svg>`,
+        user: `<svg ${common}><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 7a3 3 0 11-6 0 3 3 0 016 0ZM5.5 20a6.5 6.5 0 0113 0"/></svg>`,
+        clock: `<svg ${common}><circle cx="12" cy="12" r="9" stroke-width="1.8"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 7v5l3 2"/></svg>`,
+        send: `<svg ${common}><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m3 11 17-7-7 17-2.3-7.7L3 11Zm7.7 2.3L14 10"/></svg>`,
+        trash: `<svg ${common}><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7m4 4v5m4-5v5"/></svg>`,
+        copy: `<svg ${common}><rect x="8" y="8" width="11" height="11" rx="2" stroke-width="1.8"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2"/></svg>`
+      };
+      return icons[name] || icons.info;
     }
 
     // ================================================================
@@ -1909,16 +2039,16 @@
           document.execCommand("copy");
           textarea.remove();
         }
-        showToast("Berhasil disalin", "📋");
+        showToast("Berhasil disalin", "copy");
       } catch (_) {
-        showToast("Gagal menyalin", "❌");
+        showToast("Gagal menyalin", "error");
       }
     }
 
-    function showToast(message, icon = "ℹ️") {
+    function showToast(message, icon = "info") {
       const toast = document.getElementById("toast");
       document.getElementById("toast-message").textContent = message;
-      document.getElementById("toast-icon").textContent = icon;
+      document.getElementById("toast-icon").innerHTML = iconSvg(icon, "w-4 h-4");
       toast.classList.remove("-translate-y-20", "opacity-0");
       toast.classList.add("translate-y-0", "opacity-100");
 
