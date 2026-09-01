@@ -91,26 +91,23 @@
       <!-- Identitas akun sementara 12 jam -->
       <div class="flex items-center gap-2">
         <div class="flex items-center bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 gap-2">
-          <div class="w-8 h-8 rounded-full bg-slate-200 border border-slate-300 flex items-center justify-center flex-shrink-0 overflow-hidden" title="Identitas akun sementara">
+          <div class="w-8 h-8 rounded-full bg-slate-200 border border-slate-300 flex items-center justify-center flex-shrink-0 overflow-hidden" title="Akun sementara">
             <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 7a3 3 0 11-6 0 3 3 0 016 0ZM5.5 20a6.5 6.5 0 0113 0"/>
             </svg>
           </div>
           <div class="flex flex-col">
-            <span class="text-[9px] text-slate-400 font-semibold leading-none">Username aktif:</span>
+            <span class="text-[9px] text-slate-400 font-semibold leading-none">Akun aktif:</span>
             <div class="flex items-center gap-2 mt-0.5">
-              <input
-                type="text"
-                id="device-name-input"
-                class="bg-transparent text-xs font-bold text-brand-700 outline-none w-20 sm:w-32 cursor-default"
-                title="Username terkunci selama masa akun 12 jam"
-                placeholder="Belum ada"
-                readonly
-              />
-              <span id="account-time-left" class="hidden sm:inline text-[9px] font-semibold text-slate-400 whitespace-nowrap">Belum aktif</span>
+              <input type="text" id="device-name-input" class="bg-transparent text-xs font-bold text-brand-700 outline-none w-20 sm:w-32 cursor-default" title="Username akun" placeholder="Belum masuk" readonly />
+              <span id="account-time-left" class="hidden sm:inline text-[9px] font-semibold text-slate-400 whitespace-nowrap">Belum masuk</span>
             </div>
           </div>
         </div>
+        <button id="btn-logout" type="button" class="hidden items-center gap-1.5 px-2.5 py-2 text-xs font-semibold text-slate-600 hover:text-rose-700 hover:bg-rose-50 border border-slate-200 rounded-lg transition" title="Keluar dari akun pada browser ini">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M10 5H6a2 2 0 00-2 2v10a2 2 0 002 2h4m5-4 4-4-4-4m4 4H9"/></svg>
+          <span class="hidden sm:inline">Keluar</span>
+        </button>
       </div>
 
     </div>
@@ -330,53 +327,41 @@
 
 
 
-  <!-- ==================== MODAL AKUN SEMENTARA 12 JAM ==================== -->
+  <!-- ==================== MODAL LOGIN / AKUN SEMENTARA 12 JAM ==================== -->
   <div id="account-modal" class="hidden fixed inset-0 z-[80] bg-slate-950/60 backdrop-blur-sm items-center justify-center p-4">
     <div class="w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
       <div class="px-5 pt-5 pb-3">
         <div class="w-11 h-11 rounded-xl bg-brand-100 text-brand-700 flex items-center justify-center mb-3">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 7a3 3 0 11-6 0 3 3 0 016 0ZM5.5 20a6.5 6.5 0 0113 0"/>
-          </svg>
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 7a3 3 0 11-6 0 3 3 0 016 0ZM5.5 20a6.5 6.5 0 0113 0"/></svg>
         </div>
-        <h3 class="text-base font-bold text-slate-900">Buat Identitas Sementara</h3>
-        <p class="text-xs text-slate-500 mt-1 leading-relaxed">Username dan PIN berlaku selama 12 jam. Selama masa itu username tidak dapat diganti, tetapi PIN dapat diganti kapan saja.</p>
+        <h3 id="account-modal-title" class="text-base font-bold text-slate-900">Masuk ke ChatSofyan</h3>
+        <p id="account-modal-description" class="text-xs text-slate-500 mt-1 leading-relaxed">Masuk menggunakan username dan PIN akun yang masih aktif.</p>
+      </div>
+
+      <div class="px-5 pb-3">
+        <div class="grid grid-cols-2 gap-1 p-1 bg-slate-100 rounded-xl">
+          <button id="btn-account-mode-login" type="button" class="px-3 py-2 text-xs font-bold rounded-lg bg-white text-brand-700 shadow-sm">Masuk</button>
+          <button id="btn-account-mode-create" type="button" class="px-3 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800">Buat Akun</button>
+        </div>
       </div>
 
       <form id="account-form" class="px-5 pb-5 space-y-3">
         <div>
           <label class="block text-[11px] font-semibold text-slate-600 mb-1.5" for="account-username-input">Username</label>
-          <input
-            id="account-username-input"
-            type="text"
-            maxlength="80"
-            autocomplete="off"
-            class="w-full border border-slate-300 rounded-xl px-3.5 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500"
-            placeholder="Contoh: budi"
-          />
-          <p class="text-[10px] text-slate-400 mt-1">Username harus unik. Huruf besar/kecil dianggap sama.</p>
+          <input id="account-username-input" type="text" maxlength="80" autocomplete="username" class="w-full border border-slate-300 rounded-xl px-3.5 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500" placeholder="Contoh: budi" />
+          <p id="account-username-help" class="text-[10px] text-slate-400 mt-1">Masukkan username akun Anda.</p>
         </div>
 
         <div>
           <label class="block text-[11px] font-semibold text-slate-600 mb-1.5" for="account-pin-input">PIN 6 digit</label>
           <div class="relative">
-            <input
-              id="account-pin-input"
-              type="password"
-              inputmode="numeric"
-              pattern="[0-9]*"
-              maxlength="6"
-              autocomplete="off"
-              class="w-full border border-slate-300 rounded-xl px-3.5 py-3 pr-12 text-center font-mono font-bold tracking-[0.35em] text-lg outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500"
-              placeholder="••••••"
-            />
+            <input id="account-pin-input" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="current-password" class="w-full border border-slate-300 rounded-xl px-3.5 py-3 pr-12 text-center font-mono font-bold tracking-[0.35em] text-lg outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500" placeholder="••••••" />
             <button id="btn-toggle-account-pin" type="button" class="absolute right-2.5 top-1/2 -translate-y-1/2 p-2 text-slate-500 hover:text-brand-700 rounded-lg hover:bg-brand-50" title="Lihat / sembunyikan PIN"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5" stroke-width="1.8"/></svg></button>
           </div>
         </div>
 
         <p id="account-form-error" class="hidden text-xs text-rose-600"></p>
-
-        <button id="btn-create-account" type="submit" class="w-full px-4 py-2.5 text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-xl shadow-sm transition">Mulai 12 Jam</button>
+        <button id="btn-account-submit" type="submit" class="w-full px-4 py-2.5 text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-xl shadow-sm transition">Masuk</button>
       </form>
     </div>
   </div>
@@ -431,7 +416,7 @@
   <script>
     // ================================================================
     // ChatSofyan - Frontend GitHub Pages
-    // ChatSofyan Revisi 013 - GitHub Pages
+    // ChatSofyan Revisi 014 - GitHub Pages
     // ================================================================
 
     const APP_CONFIG = Object.freeze({
@@ -462,10 +447,11 @@
     const roomAccessTokens = new Map();
     let ownerPinVisible = false;
     let pinModalState = { mode: "", room: "", pendingAction: "" };
-    let accountState = { active: false, username: "", ownerToken: "", expiresAt: "" };
+    let accountState = { active: false, username: "", sessionToken: "", expiresAt: "", status: "NO_SESSION" };
     // Penanda perubahan identitas akun. Dipakai agar respons sync lama yang
     // dimulai sebelum akun dibuat/berubah tidak boleh membatalkan akun baru.
     let accountIdentityRevision = 0;
+    let accountModalMode = "login";
     let freshSyncTimer = null;
     let accountModalBusy = false;
     let selectedFile = null;
@@ -484,23 +470,13 @@
     let lastRenderedRoom = "";
 
     const STORAGE_KEY_ACCOUNT_USERNAME = "chatsofyan_account_username_v1";
-    const STORAGE_KEY_ACCOUNT_OWNER_TOKEN = "chatsofyan_account_owner_token_v1";
+    const STORAGE_KEY_ACCOUNT_SESSION_TOKEN = "chatsofyan_account_session_token_v2";
+    const STORAGE_KEY_LEGACY_OWNER_TOKEN = "chatsofyan_account_owner_token_v1";
     const STORAGE_KEY_ACCOUNT_EXPIRES_AT = "chatsofyan_account_expires_at_v1";
     const STORAGE_KEY_ROOM_PIN_PREFIX = "chatsofyan_room_pin_v1:";
 
-    function randomSecureToken() {
-      try {
-        if (window.crypto && window.crypto.getRandomValues) {
-          const bytes = new Uint8Array(32);
-          window.crypto.getRandomValues(bytes);
-          return Array.from(bytes, b => b.toString(16).padStart(2, "0")).join("");
-        }
-      } catch (_) {}
-      return `${Date.now()}_${Math.random().toString(36).slice(2)}_${Math.random().toString(36).slice(2)}`;
-    }
-
-    function getOwnerToken() {
-      return accountState.active ? String(accountState.ownerToken || "") : "";
+    function getSessionToken() {
+      return accountState.active ? String(accountState.sessionToken || "") : "";
     }
 
     function markAccountIdentityChanged() {
@@ -538,14 +514,7 @@
       if (index >= 0) {
         roomSummaries[index] = { ...roomSummaries[index], ...changes, name };
       } else if (name) {
-        roomSummaries.push({
-          name,
-          count: 0,
-          latestTimestamp: "",
-          isProtected: true,
-          isOwner: false,
-          ...changes
-        });
+        roomSummaries.push({ name, count: 0, latestTimestamp: "", isProtected: true, isOwner: false, ...changes });
       }
     }
 
@@ -554,49 +523,65 @@
     }
 
     function saveAccountState() {
-      if (!accountState.active) return;
+      if (!accountState.active || !accountState.sessionToken) return;
       localStorage.setItem(STORAGE_KEY_ACCOUNT_USERNAME, accountState.username);
-      localStorage.setItem(STORAGE_KEY_ACCOUNT_OWNER_TOKEN, accountState.ownerToken);
-      localStorage.setItem(STORAGE_KEY_ACCOUNT_EXPIRES_AT, accountState.expiresAt);
+      localStorage.setItem(STORAGE_KEY_ACCOUNT_SESSION_TOKEN, accountState.sessionToken);
+      localStorage.setItem(STORAGE_KEY_ACCOUNT_EXPIRES_AT, accountState.expiresAt || "");
+      localStorage.removeItem(STORAGE_KEY_LEGACY_OWNER_TOKEN);
+    }
+
+    function clearStoredSession() {
+      localStorage.removeItem(STORAGE_KEY_ACCOUNT_USERNAME);
+      localStorage.removeItem(STORAGE_KEY_ACCOUNT_SESSION_TOKEN);
+      localStorage.removeItem(STORAGE_KEY_ACCOUNT_EXPIRES_AT);
+      localStorage.removeItem(STORAGE_KEY_LEGACY_OWNER_TOKEN);
     }
 
     function loadStoredAccountState() {
       const username = (localStorage.getItem(STORAGE_KEY_ACCOUNT_USERNAME) || "").trim();
-      const ownerToken = localStorage.getItem(STORAGE_KEY_ACCOUNT_OWNER_TOKEN) || "";
+      const sessionToken = localStorage.getItem(STORAGE_KEY_ACCOUNT_SESSION_TOKEN) || "";
       const expiresAt = localStorage.getItem(STORAGE_KEY_ACCOUNT_EXPIRES_AT) || "";
-      const expiresMs = Date.parse(expiresAt);
 
-      if (username && ownerToken && Number.isFinite(expiresMs) && expiresMs > Date.now()) {
-        accountState = { active: true, username, ownerToken, expiresAt };
+      if (username && sessionToken) {
+        accountState = { active: true, username, sessionToken, expiresAt, status: "VERIFYING" };
         return true;
       }
 
-      localStorage.removeItem(STORAGE_KEY_ACCOUNT_USERNAME);
-      localStorage.removeItem(STORAGE_KEY_ACCOUNT_OWNER_TOKEN);
-      localStorage.removeItem(STORAGE_KEY_ACCOUNT_EXPIRES_AT);
-      accountState = { active: false, username: "", ownerToken: "", expiresAt: "" };
+      clearStoredSession();
+      accountState = { active: false, username: "", sessionToken: "", expiresAt: "", status: "NO_SESSION" };
       return false;
     }
 
     function updateAccountHeader() {
       const input = document.getElementById("device-name-input");
       const timeLabel = document.getElementById("account-time-left");
+      const logoutBtn = document.getElementById("btn-logout");
       if (!input || !timeLabel) return;
 
       if (!accountState.active) {
         input.value = "";
-        input.placeholder = "Belum ada";
-        timeLabel.textContent = "Belum aktif";
+        input.placeholder = "Belum masuk";
+        timeLabel.textContent = "Belum masuk";
+        timeLabel.classList.remove("text-emerald-600");
+        timeLabel.classList.add("text-slate-400");
+        logoutBtn?.classList.add("hidden");
+        logoutBtn?.classList.remove("flex");
+        return;
+      }
+
+      input.value = accountState.username;
+      logoutBtn?.classList.remove("hidden");
+      logoutBtn?.classList.add("flex");
+
+      if (accountState.status === "VERIFYING") {
+        timeLabel.textContent = "Memverifikasi...";
         timeLabel.classList.remove("text-emerald-600");
         timeLabel.classList.add("text-slate-400");
         return;
       }
 
-      input.value = accountState.username;
       const expiresMs = Date.parse(accountState.expiresAt || "");
-      const remaining = Number.isFinite(expiresMs)
-        ? Math.max(0, Math.floor((expiresMs - serverNowMs()) / 1000))
-        : 0;
+      const remaining = Number.isFinite(expiresMs) ? Math.max(0, Math.floor((expiresMs - serverNowMs()) / 1000)) : 0;
       timeLabel.textContent = `Sisa ${formatAccountDuration(remaining)}`;
       timeLabel.classList.remove("text-slate-400");
       timeLabel.classList.add("text-emerald-600");
@@ -610,16 +595,35 @@
       return `${hours}:${mins}:${secs}`;
     }
 
-    function showAccountModal(message = "") {
+    function setAccountModalMode(mode = "login") {
+      accountModalMode = mode === "create" ? "create" : "login";
+      const isCreate = accountModalMode === "create";
+      document.getElementById("account-modal-title").textContent = isCreate ? "Buat Akun Sementara" : "Masuk ke ChatSofyan";
+      document.getElementById("account-modal-description").textContent = isCreate
+        ? "Buat username dan PIN 6 digit. Akun berlaku 12 jam sejak dibuat."
+        : "Masuk menggunakan username dan PIN akun yang masih aktif.";
+      document.getElementById("account-username-help").textContent = isCreate
+        ? "Username harus unik. Huruf besar/kecil dianggap sama."
+        : "Login tidak memperpanjang masa akun 12 jam.";
+      document.getElementById("btn-account-submit").textContent = isCreate ? "Buat Akun 12 Jam" : "Masuk";
+      const loginBtn = document.getElementById("btn-account-mode-login");
+      const createBtn = document.getElementById("btn-account-mode-create");
+      loginBtn.className = `px-3 py-2 text-xs font-bold rounded-lg ${!isCreate ? "bg-white text-brand-700 shadow-sm" : "text-slate-500 hover:text-slate-800"}`;
+      createBtn.className = `px-3 py-2 text-xs font-bold rounded-lg ${isCreate ? "bg-white text-brand-700 shadow-sm" : "text-slate-500 hover:text-slate-800"}`;
+      const error = document.getElementById("account-form-error");
+      error.textContent = "";
+      error.classList.add("hidden");
+    }
+
+    function showAccountModal(message = "", mode = "login") {
       const modal = document.getElementById("account-modal");
       const error = document.getElementById("account-form-error");
       if (!modal) return;
+      setAccountModalMode(mode);
+      if (accountState.username) document.getElementById("account-username-input").value = accountState.username;
       if (message) {
         error.textContent = message;
         error.classList.remove("hidden");
-      } else {
-        error.textContent = "";
-        error.classList.add("hidden");
       }
       modal.classList.remove("hidden");
       modal.classList.add("flex");
@@ -640,17 +644,16 @@
       accountModalBusy = busy;
       const username = document.getElementById("account-username-input");
       const pin = document.getElementById("account-pin-input");
-      const button = document.getElementById("btn-create-account");
+      const button = document.getElementById("btn-account-submit");
       username.disabled = busy;
       pin.disabled = busy;
       button.disabled = busy;
       button.classList.toggle("opacity-60", busy);
-      button.textContent = busy ? "Membuat akun..." : "Mulai 12 Jam";
+      button.textContent = busy ? "Memproses..." : (accountModalMode === "create" ? "Buat Akun 12 Jam" : "Masuk");
     }
 
-    async function handleCreateAccount() {
+    async function handleAccountSubmit() {
       if (accountModalBusy) return;
-
       const usernameInput = document.getElementById("account-username-input");
       const pinInput = document.getElementById("account-pin-input");
       const error = document.getElementById("account-form-error");
@@ -663,38 +666,32 @@
         usernameInput.focus();
         return;
       }
-
       if (!/^\d{6}$/.test(pin)) {
         error.textContent = "PIN harus tepat 6 digit angka.";
         error.classList.remove("hidden");
         pinInput.focus();
         return;
       }
-
       if (!POLLING_ENABLED) {
-        error.textContent = "Preview ChatGPT: pembuatan akun dinonaktifkan. Buka file secara lokal atau melalui GitHub Pages.";
+        error.textContent = "Preview ChatGPT: login dan pembuatan akun dinonaktifkan. Buka file secara lokal atau melalui GitHub Pages.";
         error.classList.remove("hidden");
         return;
       }
 
       error.classList.add("hidden");
       setAccountModalBusy(true);
-      const newOwnerToken = randomSecureToken();
-
       try {
-        const data = await postToGAS({
-          action: "createAccount",
-          username,
-          pin,
-          ownerToken: newOwnerToken
-        });
-
+        const action = accountModalMode === "create" ? "createAccount" : "login";
+        const data = await postToGAS({ action, username, pin }, { handleAuth: false });
+        const wasCreate = accountModalMode === "create";
         accountState = {
           active: true,
           username: String(data.username || username),
-          ownerToken: newOwnerToken,
-          expiresAt: String(data.expiresAt || "")
+          sessionToken: String(data.sessionToken || ""),
+          expiresAt: String(data.expiresAt || ""),
+          status: "ACTIVE"
         };
+        if (!accountState.sessionToken) throw new Error("Backend tidak mengembalikan sesi login.");
         markAccountIdentityChanged();
         saveAccountState();
         storeRoomPin(accountState.username, pin);
@@ -706,37 +703,23 @@
         patchRoomSummarySecurity(accountState.username, { isProtected: true, isOwner: true, count: 0 });
         hideAccountModal();
         updateAccountHeader();
+        forceScrollToBottom = true;
         refreshFullUI();
-        showToast(`Akun ${accountState.username} aktif selama 12 jam`, "check");
-
-        // Jangan bergantung pada sync yang mungkin sudah dimulai sebelum akun dibuat.
-        // Jika ada sync lama yang masih berjalan, jadwalkan sync baru setelahnya.
-        if (syncInFlight) {
-          scheduleFreshSync(120, false);
-        } else {
-          await fetchFromGAS({ silent: false });
-        }
+        showToast(wasCreate ? `Akun ${accountState.username} aktif selama 12 jam` : `Berhasil masuk sebagai ${accountState.username}`, "check");
+        if (syncInFlight) scheduleFreshSync(120, false); else await fetchFromGAS({ silent: false });
       } catch (err) {
-        error.textContent = err.message || "Akun tidak dapat dibuat.";
+        error.textContent = err.message || (accountModalMode === "create" ? "Akun tidak dapat dibuat." : "Tidak dapat masuk.");
         error.classList.remove("hidden");
       } finally {
         setAccountModalBusy(false);
       }
     }
 
-    function expireCurrentAccount(message = "Masa akun 12 jam telah berakhir. Buat username dan PIN baru.") {
-      if (!accountState.active) {
-        showAccountModal(message);
-        return;
-      }
-
+    function logoutCurrentAccount(message = "", mode = "login") {
       const oldUsername = accountState.username;
-      localStorage.removeItem(STORAGE_KEY_ACCOUNT_USERNAME);
-      localStorage.removeItem(STORAGE_KEY_ACCOUNT_OWNER_TOKEN);
-      localStorage.removeItem(STORAGE_KEY_ACCOUNT_EXPIRES_AT);
+      clearStoredSession();
       if (oldUsername) localStorage.removeItem(roomPinStorageKey(oldUsername));
-
-      accountState = { active: false, username: "", ownerToken: "", expiresAt: "" };
+      accountState = { active: false, username: "", sessionToken: "", expiresAt: "", status: "NO_SESSION" };
       markAccountIdentityChanged();
       roomAccessTokens.clear();
       selectedRoom = "";
@@ -746,7 +729,44 @@
       mobileRoomOpen = false;
       updateAccountHeader();
       refreshFullUI();
-      showAccountModal(message);
+      showAccountModal(message, mode);
+      const usernameInput = document.getElementById("account-username-input");
+      if (usernameInput) usernameInput.value = mode === "login" ? oldUsername : "";
+    }
+
+    function applyServerAccountState(serverAccount) {
+      if (!accountState.active) return false;
+      const status = String(serverAccount?.status || "").toUpperCase();
+      if (status === "ACTIVE" && serverAccount.active === true) {
+        accountState.username = String(serverAccount.username || accountState.username);
+        accountState.expiresAt = String(serverAccount.expiresAt || accountState.expiresAt);
+        accountState.status = "ACTIVE";
+        saveAccountState();
+        updateAccountHeader();
+        return true;
+      }
+      if (status === "ACCOUNT_EXPIRED") {
+        logoutCurrentAccount("Masa akun 12 jam telah berakhir. Buat akun baru untuk melanjutkan.", "create");
+        return false;
+      }
+      if (["SESSION_INVALID", "ACCOUNT_NOT_FOUND", "NO_SESSION"].includes(status) || !serverAccount) {
+        logoutCurrentAccount("Sesi login tidak valid. Silakan masuk kembali dengan username dan PIN Anda.", "login");
+        return false;
+      }
+      return true;
+    }
+
+    function handleAuthApiError(err) {
+      const code = String(err?.code || "").toUpperCase();
+      if (code === "ACCOUNT_EXPIRED") {
+        logoutCurrentAccount("Masa akun 12 jam telah berakhir. Buat akun baru untuk melanjutkan.", "create");
+        return true;
+      }
+      if (["SESSION_INVALID", "ACCOUNT_NOT_FOUND"].includes(code)) {
+        logoutCurrentAccount("Sesi login tidak valid. Silakan masuk kembali.", "login");
+        return true;
+      }
+      return false;
     }
 
     function initAccountIdentity() {
@@ -755,7 +775,7 @@
         selectedRoom = accountState.username;
       } else {
         selectedRoom = "";
-        setTimeout(() => showAccountModal(), 0);
+        setTimeout(() => showAccountModal("", "login"), 0);
       }
       updateAccountHeader();
     }
@@ -936,48 +956,27 @@
 
       const wasAuthorized = !!selectedRoomAccess.authorized;
       const previousRoom = selectedRoom;
-
-      // Snapshot identitas pada SAAT request dimulai. Ini penting karena user dapat
-      // membuat akun ketika request sync lama (tanpa akun) masih berjalan.
       const requestIdentityRevision = accountIdentityRevision;
-      const requestAccountWasActive = !!accountState.active;
-      const requestUsername = getMyDevice();
-      const requestOwnerToken = getOwnerToken();
+      const requestSessionToken = getSessionToken();
       const requestRoomAccessToken = getRoomAccessToken(previousRoom);
 
       try {
         const data = await postToGAS({
           action: "sync",
           selectedRoom: previousRoom,
-          username: requestUsername,
-          ownerToken: requestOwnerToken,
+          sessionToken: requestSessionToken,
           roomAccessToken: requestRoomAccessToken
-        }, { allowSyncState: true });
+        }, { handleAuth: false });
 
         updateServerClock(data.serverTime);
 
-        // Jika identitas berubah setelah request dikirim (mis. akun baru saja dibuat),
-        // respons ini sudah basi. Abaikan seluruh status akun/ruang dari respons lama
-        // dan minta sinkronisasi baru dengan identitas terbaru.
-        const identityChangedDuringRequest =
-          requestIdentityRevision !== accountIdentityRevision ||
-          requestAccountWasActive !== !!accountState.active ||
-          requestUsername !== getMyDevice() ||
-          requestOwnerToken !== getOwnerToken();
-
+        const identityChangedDuringRequest = requestIdentityRevision !== accountIdentityRevision || requestSessionToken !== getSessionToken();
         if (identityChangedDuringRequest) {
           scheduleFreshSync(80, true);
           return false;
         }
 
-        // PIN ruang dapat berhasil dibuka ketika request polling lama masih berjalan.
-        // Jika token akses ruang berubah setelah request ini dikirim, respons lama
-        // (biasanya unauthorized karena belum membawa token) tidak boleh menutup
-        // kembali ruang yang baru saja berhasil dibuka.
-        const roomAccessChangedDuringRequest =
-          previousRoom === selectedRoom &&
-          requestRoomAccessToken !== getRoomAccessToken(previousRoom);
-
+        const roomAccessChangedDuringRequest = previousRoom === selectedRoom && requestRoomAccessToken !== getRoomAccessToken(previousRoom);
         if (roomAccessChangedDuringRequest) {
           scheduleFreshSync(80, true);
           return false;
@@ -987,26 +986,12 @@
         serverMaxFileBytes = Number(data.maxFileBytes || APP_CONFIG.DEFAULT_MAX_FILE_BYTES);
         roomSummaries = Array.isArray(data.rooms) ? data.rooms : [];
 
-        if (requestAccountWasActive && accountState.active) {
-          if (!data.account || data.account.active !== true) {
-            // Karena identitas request sudah dipastikan sama dengan identitas saat ini,
-            // barulah respons backend boleh mengakhiri akun.
-            expireCurrentAccount("Masa akun 12 jam telah berakhir. Buat username dan PIN baru.");
-            return true;
-          }
-
-          accountState.username = String(data.account.username || accountState.username);
-          accountState.expiresAt = String(data.account.expiresAt || accountState.expiresAt);
-          saveAccountState();
-          updateAccountHeader();
-        }
+        if (accountState.active && !applyServerAccountState(data.account)) return true;
 
         if (previousRoom === selectedRoom) {
           selectedRoomAccess = data.roomAccess || { exists: false, authorized: false, isOwner: false, canClaim: false };
-
           if (selectedRoomAccess.authorized && Array.isArray(data.items)) {
-            currentItems = data.items.map(normalizeItem)
-              .filter(item => item.status === "active" && getRemainingSeconds(item) > 0);
+            currentItems = data.items.map(normalizeItem).filter(item => item.status === "active" && getRemainingSeconds(item) > 0);
           } else {
             currentItems = [];
           }
@@ -1045,7 +1030,9 @@
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       if (!data || data.ok !== true) {
-        throw new Error(data && data.message ? data.message : "Permintaan tidak dapat diproses.");
+        const err = new Error(data && data.message ? data.message : "Permintaan tidak dapat diproses.");
+        err.code = data && data.error ? String(data.error) : "BACKEND_ERROR";
+        throw err;
       }
 
       updateServerClock(data.serverTime);
@@ -1262,12 +1249,12 @@
       if (!selectedRoom) {
         emptyState.classList.add("hidden");
         currentItems = [];
-        headerStats.textContent = "Buat identitas sementara untuk mulai";
+        headerStats.textContent = "Masuk atau buat akun untuk mulai";
         container.innerHTML = `
           <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 text-center">
             <div class="w-12 h-12 mx-auto rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center mb-3">${iconSvg("user", "w-6 h-6")}</div>
-            <h3 class="font-bold text-slate-800 text-sm">Belum Ada Akun Aktif</h3>
-            <p class="text-xs text-slate-500 mt-1">Buat username dan PIN 6 digit untuk menggunakan ChatSofyan selama 12 jam.</p>
+            <h3 class="font-bold text-slate-800 text-sm">Belum Masuk</h3>
+            <p class="text-xs text-slate-500 mt-1">Masuk ke akun yang masih aktif atau buat akun sementara baru untuk menggunakan ChatSofyan.</p>
           </div>`;
         return;
       }
@@ -1446,11 +1433,8 @@
         let hasExpired = false;
 
         if (accountState.active) {
+          // Countdown hanya tampilan; backend satu-satunya sumber keputusan logout.
           updateAccountHeader();
-          const accountExpiresMs = Date.parse(accountState.expiresAt || "");
-          if (Number.isFinite(accountExpiresMs) && accountExpiresMs <= serverNowMs()) {
-            expireCurrentAccount("Masa akun 12 jam telah berakhir. Buat username dan PIN baru.");
-          }
         }
 
         document.querySelectorAll(".js-countdown, .js-room-timer").forEach(el => {
@@ -1543,7 +1527,7 @@
 
       try {
         if (mode === "unlock") {
-          const data = await postToGAS({ action: "unlockRoom", room, pin });
+          const data = await postToGAS({ action: "unlockRoom", room, pin, sessionToken: getSessionToken() });
           roomAccessTokens.set(room, data.accessToken);
           selectedRoomAccess = { exists: true, authorized: true, isOwner: false, canClaim: false };
           patchRoomSummarySecurity(room, { isProtected: true, isOwner: false });
@@ -1552,12 +1536,17 @@
           showToast(`Ruang ${room} berhasil dibuka`, "unlock");
           await fetchFromGAS({ silent: false });
         } else if (mode === "change") {
-          await postToGAS({
+          const data = await postToGAS({
             action: "changeRoomPin",
             room,
-            ownerToken: getOwnerToken(),
+            sessionToken: getSessionToken(),
             newPin: pin
           });
+          accountState.sessionToken = String(data.sessionToken || accountState.sessionToken);
+          accountState.expiresAt = String(data.expiresAt || accountState.expiresAt);
+          accountState.status = "ACTIVE";
+          markAccountIdentityChanged();
+          saveAccountState();
           storeRoomPin(room, pin);
           roomAccessTokens.delete(room);
           selectedRoomAccess = { exists: true, authorized: true, isOwner: true, canClaim: false };
@@ -1573,6 +1562,10 @@
           await handleSendMessage();
         }
       } catch (err) {
+        if (handleAuthApiError(err)) {
+          closePinModal();
+          return;
+        }
         error.textContent = err.message || "PIN tidak dapat diproses.";
         error.classList.remove("hidden");
       } finally {
@@ -1698,7 +1691,7 @@
       if (isSubmitting) return;
 
       if (!accountState.active) {
-        showAccountModal("Buat username dan PIN terlebih dahulu.");
+        showAccountModal("Silakan masuk atau buat akun terlebih dahulu.", "login");
         return;
       }
 
@@ -1748,7 +1741,7 @@
           action: "send",
           room,
           sender,
-          ownerToken: getOwnerToken(),
+          sessionToken: getSessionToken(),
           roomAccessToken: getRoomAccessToken(room),
           type,
           content,
@@ -1771,6 +1764,7 @@
         await fetchFromGAS({ silent: true });
       } catch (err) {
         console.error(err);
+        if (handleAuthApiError(err)) return;
         setSyncStatus("offline", "Gagal mengirim");
         showToast(err.message || "Gagal mengirim", "error");
         await fetchFromGAS({ silent: true });
@@ -1789,7 +1783,7 @@
         await postToGAS({
           action: "delete",
           messageId,
-          ownerToken: getOwnerToken(),
+          sessionToken: getSessionToken(),
           roomAccessToken: getRoomAccessToken(selectedRoom)
         });
         currentItems = currentItems.filter(item => item.id !== messageId);
@@ -1799,6 +1793,7 @@
       } catch (err) {
         if (card) card.classList.remove("opacity-40");
         console.error("Gagal menghapus kiriman:", err);
+        if (handleAuthApiError(err)) return;
         showToast(err.message || "Gagal menghapus kiriman", "error");
         await fetchFromGAS({ silent: true });
       }
@@ -1823,7 +1818,7 @@
         const data = await postToGAS({
           action: "clearRoom",
           room,
-          ownerToken: getOwnerToken(),
+          sessionToken: getSessionToken(),
           roomAccessToken: getRoomAccessToken(room)
         });
         const deletedCount = Number(data.deletedCount || 0);
@@ -1833,6 +1828,7 @@
         await fetchFromGAS({ silent: true });
       } catch (err) {
         console.error("Gagal menghapus semua kiriman:", err);
+        if (handleAuthApiError(err)) return;
         showToast(err.message || "Gagal menghapus semua kiriman", "error");
         await fetchFromGAS({ silent: true });
       }
@@ -1908,7 +1904,15 @@
 
       document.getElementById("account-form").addEventListener("submit", (e) => {
         e.preventDefault();
-        handleCreateAccount();
+        handleAccountSubmit();
+      });
+
+      document.getElementById("btn-account-mode-login").addEventListener("click", () => setAccountModalMode("login"));
+      document.getElementById("btn-account-mode-create").addEventListener("click", () => setAccountModalMode("create"));
+      document.getElementById("btn-logout").addEventListener("click", () => {
+        if (window.confirm("Keluar dari akun pada browser ini? Akun tetap aktif sampai masa 12 jam berakhir.")) {
+          logoutCurrentAccount("Anda telah keluar. Masuk kembali kapan saja selama akun masih aktif.", "login");
+        }
       });
 
       document.getElementById("account-pin-input").addEventListener("input", (e) => {
