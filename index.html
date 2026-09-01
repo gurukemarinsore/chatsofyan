@@ -183,7 +183,17 @@
         </div>
 
         <!-- Aksi Cepat Kamar -->
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5 sm:gap-2">
+          <!-- Kontrol PIN hanya muncul jika ruang benar-benar dimiliki browser/perangkat ini -->
+          <div id="owner-pin-controls" class="hidden items-center gap-1.5">
+            <div class="flex items-center gap-1 bg-indigo-50 border border-indigo-200 rounded-lg px-2 py-1.5 text-[10px] sm:text-xs text-indigo-800" title="PIN universal ruang Anda">
+              <span class="font-semibold hidden sm:inline">PIN</span>
+              <span id="owner-pin-display" class="font-mono font-bold tracking-wider">••••••</span>
+              <button id="btn-toggle-owner-pin" type="button" class="p-0.5 rounded hover:bg-indigo-100 transition" title="Lihat / sembunyikan PIN">👁️</button>
+            </div>
+            <button id="btn-change-room-pin" type="button" class="px-2 py-1.5 text-[10px] sm:text-xs text-indigo-700 hover:bg-indigo-50 border border-indigo-200 rounded-lg font-semibold transition">Ganti</button>
+          </div>
+
           <button 
             id="btn-clear-current-room" 
             class="px-2.5 py-1.5 text-xs text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-lg font-medium transition flex items-center gap-1" 
@@ -245,6 +255,7 @@
             <!-- Tombol Lampirkan Dokumen -->
             <button 
               type="button" 
+              id="btn-attach-file"
               onclick="document.getElementById('file-input').click()"
               class="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition flex-shrink-0"
               title="Lampirkan File (Maks. 10 MB)">
@@ -300,6 +311,45 @@
   </div>
 
 
+
+  <!-- ==================== MODAL PIN RUANG ==================== -->
+  <div id="pin-modal" class="hidden fixed inset-0 z-[70] bg-slate-950/55 backdrop-blur-sm items-center justify-center p-4">
+    <div class="w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
+      <div class="px-5 pt-5 pb-3">
+        <div class="w-11 h-11 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center mb-3">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+        </div>
+        <h3 id="pin-modal-title" class="text-base font-bold text-slate-900">PIN Ruang</h3>
+        <p id="pin-modal-description" class="text-xs text-slate-500 mt-1 leading-relaxed">Masukkan PIN 6 digit.</p>
+      </div>
+
+      <form id="pin-modal-form" class="px-5 pb-5">
+        <label class="block text-[11px] font-semibold text-slate-600 mb-1.5" for="pin-modal-input">PIN 6 digit</label>
+        <div class="relative">
+          <input
+            id="pin-modal-input"
+            type="password"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            maxlength="6"
+            autocomplete="off"
+            class="w-full border border-slate-300 rounded-xl px-3.5 py-3 pr-12 text-center font-mono font-bold tracking-[0.35em] text-lg outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
+            placeholder="••••••"
+          />
+          <button id="btn-toggle-pin-modal" type="button" class="absolute right-2.5 top-1/2 -translate-y-1/2 p-2 text-slate-500 hover:text-indigo-700 rounded-lg hover:bg-indigo-50" title="Lihat / sembunyikan PIN">👁️</button>
+        </div>
+        <p id="pin-modal-error" class="hidden text-xs text-rose-600 mt-2"></p>
+
+        <div class="flex items-center justify-end gap-2 mt-5">
+          <button id="btn-cancel-pin-modal" type="button" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition">Batal</button>
+          <button id="btn-submit-pin-modal" type="submit" class="px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm transition">Buka Ruang</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- ==================== 3. TOAST NOTIFIKASI ==================== -->
   <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 transform -translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
     <div class="bg-slate-900/95 backdrop-blur text-white text-xs md:text-sm px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 border border-slate-700">
@@ -312,7 +362,7 @@
   <script>
     // ================================================================
     // ChatSofyan - Frontend GitHub Pages
-    // ChatSofyan Revisi 004 - GitHub Pages
+    // ChatSofyan Revisi 006 - GitHub Pages
     // ================================================================
 
     const APP_CONFIG = Object.freeze({
@@ -323,8 +373,26 @@
       BACKGROUND_POLL_MS: 12000
     });
 
+    // Polling/sinkronisasi GAS otomatis hanya aktif pada environment yang diizinkan.
+    // Preview/Sandbox ChatGPT tidak termasuk allowlist sehingga tidak memicu popup izin jaringan berulang.
+    const PRODUCTION_HOST = "gurukemarinsore.github.io";
+    const IS_LOCAL_ENVIRONMENT =
+      location.protocol === "file:" ||
+      location.hostname === "localhost" ||
+      location.hostname === "127.0.0.1" ||
+      location.hostname === "[::1]" ||
+      location.hostname === "::1";
+
+    const IS_PRODUCTION_ENVIRONMENT = location.hostname === PRODUCTION_HOST;
+    const POLLING_ENABLED = IS_LOCAL_ENVIRONMENT || IS_PRODUCTION_ENVIRONMENT;
+
     let currentItems = [];
+    let roomSummaries = [];
     let selectedRoom = "";
+    let selectedRoomAccess = { exists: false, authorized: false, isOwner: false, canClaim: false };
+    const roomAccessTokens = new Map();
+    let ownerPinVisible = false;
+    let pinModalState = { mode: "", room: "", pendingAction: "" };
     let selectedFile = null;
     let selectedFileBase64 = null;
     let pollingInterval = null;
@@ -338,6 +406,61 @@
     let mobileRoomOpen = false;
 
     const STORAGE_KEY_DEVICE = "chatsofyan_device_name";
+    const STORAGE_KEY_OWNER_TOKEN = "chatsofyan_owner_token_v1";
+    const STORAGE_KEY_ROOM_PIN_PREFIX = "chatsofyan_room_pin_v1:";
+
+    function randomSecureToken() {
+      try {
+        if (window.crypto && window.crypto.getRandomValues) {
+          const bytes = new Uint8Array(32);
+          window.crypto.getRandomValues(bytes);
+          return Array.from(bytes, b => b.toString(16).padStart(2, "0")).join("");
+        }
+      } catch (_) {}
+      return `${Date.now()}_${Math.random().toString(36).slice(2)}_${Math.random().toString(36).slice(2)}`;
+    }
+
+    function getOwnerToken() {
+      let token = localStorage.getItem(STORAGE_KEY_OWNER_TOKEN);
+      if (!token) {
+        token = randomSecureToken();
+        localStorage.setItem(STORAGE_KEY_OWNER_TOKEN, token);
+      }
+      return token;
+    }
+
+    function roomPinStorageKey(room) {
+      return STORAGE_KEY_ROOM_PIN_PREFIX + encodeURIComponent(String(room || ""));
+    }
+
+    function getStoredRoomPin(room) {
+      return localStorage.getItem(roomPinStorageKey(room)) || "";
+    }
+
+    function storeRoomPin(room, pin) {
+      localStorage.setItem(roomPinStorageKey(room), String(pin || ""));
+    }
+
+    function getRoomAccessToken(room) {
+      return roomAccessTokens.get(String(room || "")) || "";
+    }
+
+    function patchRoomSummarySecurity(roomName, changes = {}) {
+      const name = String(roomName || "");
+      const index = roomSummaries.findIndex(room => String(room.name || "") === name);
+      if (index >= 0) {
+        roomSummaries[index] = { ...roomSummaries[index], ...changes, name };
+      } else {
+        roomSummaries.push({
+          name,
+          count: 0,
+          latestTimestamp: "",
+          isProtected: false,
+          isOwner: false,
+          ...changes
+        });
+      }
+    }
 
     document.addEventListener("DOMContentLoaded", () => {
       initViewportHeight();
@@ -378,6 +501,8 @@
     }
 
     function initDeviceName() {
+      getOwnerToken();
+
       let devName = localStorage.getItem(STORAGE_KEY_DEVICE);
       if (!devName) {
         devName = randomDeviceName();
@@ -389,15 +514,22 @@
 
       if (!selectedRoom) selectedRoom = devName;
 
-      devInput.addEventListener("change", (e) => {
+      devInput.addEventListener("change", async (e) => {
         const oldName = getMyDevice();
         const val = (e.target.value || "").trim() || randomDeviceName();
         localStorage.setItem(STORAGE_KEY_DEVICE, val);
         e.target.value = val;
 
-        if (selectedRoom === oldName) selectedRoom = val;
+        if (selectedRoom === oldName) {
+          selectedRoom = val;
+          currentItems = [];
+          selectedRoomAccess = { exists: false, authorized: false, isOwner: false, canClaim: true };
+          ownerPinVisible = false;
+        }
+
         refreshFullUI();
         showToast("Nama perangkat diperbarui", "✅");
+        if (POLLING_ENABLED) await fetchFromGAS({ silent: true });
       });
     }
 
@@ -499,12 +631,29 @@
       serverTtlSeconds = APP_CONFIG.DEFAULT_TTL_SECONDS;
       serverMaxFileBytes = APP_CONFIG.DEFAULT_MAX_FILE_BYTES;
       currentItems = [];
+      roomSummaries = [];
+      selectedRoomAccess = { exists: false, authorized: false, isOwner: false, canClaim: true };
       refreshFullUI();
+
+      const badge = document.getElementById("badge-mode");
+      if (!POLLING_ENABLED) {
+        badge.textContent = "Preview";
+        badge.className = "text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200";
+        setSyncStatus("idle", "Preview • koneksi GAS dinonaktifkan");
+        return;
+      }
+
+      badge.textContent = "Online";
       setSyncStatus("syncing", "Menghubungkan...");
       fetchFromGAS();
     }
 
     function startPolling() {
+      if (!POLLING_ENABLED) {
+        console.log("Preview mode: polling dan koneksi otomatis ke GAS dinonaktifkan.");
+        return;
+      }
+
       const runSync = () => fetchFromGAS({ silent: true });
 
       const applyInterval = () => {
@@ -526,30 +675,45 @@
     }
 
     async function fetchFromGAS(options = {}) {
-      if (syncInFlight) return false;
-
-      const url = buildEndpointUrl("sync");
-      if (!url) return false;
+      if (!POLLING_ENABLED || syncInFlight) return false;
 
       syncInFlight = true;
       if (!options.silent) setSyncStatus("syncing", "Memperbarui...");
 
-      try {
-        const res = await fetch(url, { method: "GET", cache: "no-store" });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const wasAuthorized = !!selectedRoomAccess.authorized;
+      const previousRoom = selectedRoom;
 
-        const data = await res.json();
-        if (!data || data.ok !== true || !Array.isArray(data.items)) {
-          throw new Error(data && data.message ? data.message : "Terjadi masalah saat memuat data.");
-        }
+      try {
+        const data = await postToGAS({
+          action: "sync",
+          selectedRoom,
+          deviceName: getMyDevice(),
+          ownerToken: getOwnerToken(),
+          roomAccessToken: getRoomAccessToken(selectedRoom)
+        }, { allowSyncState: true });
 
         updateServerClock(data.serverTime);
         serverTtlSeconds = Number(data.ttlSeconds || APP_CONFIG.DEFAULT_TTL_SECONDS);
         serverMaxFileBytes = Number(data.maxFileBytes || APP_CONFIG.DEFAULT_MAX_FILE_BYTES);
+        roomSummaries = Array.isArray(data.rooms) ? data.rooms : [];
 
-        currentItems = data.items.map(normalizeItem).filter(item => item.status === "active" && getRemainingSeconds(item) > 0);
+        if (previousRoom === selectedRoom) {
+          selectedRoomAccess = data.roomAccess || { exists: false, authorized: false, isOwner: false, canClaim: false };
+
+          if (selectedRoomAccess.authorized && Array.isArray(data.items)) {
+            currentItems = data.items.map(normalizeItem)
+              .filter(item => item.status === "active" && getRemainingSeconds(item) > 0);
+          } else {
+            currentItems = [];
+          }
+
+          if (selectedRoomAccess.exists && !selectedRoomAccess.authorized && roomAccessTokens.has(selectedRoom)) {
+            roomAccessTokens.delete(selectedRoom);
+            if (wasAuthorized) showToast("Akses ruang berubah. Masukkan PIN kembali.", "🔒");
+          }
+        }
+
         refreshFullUI();
-
         const now = new Date();
         setSyncStatus("online", `Terhubung • ${now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`);
         return true;
@@ -562,9 +726,12 @@
       }
     }
 
-    async function postToGAS(payload) {
-      const endpoint = APP_CONFIG.GAS_ENDPOINT;
+    async function postToGAS(payload, options = {}) {
+      if (!POLLING_ENABLED) {
+        throw new Error("Preview ChatGPT: koneksi ke GAS dinonaktifkan.");
+      }
 
+      const endpoint = APP_CONFIG.GAS_ENDPOINT;
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -576,6 +743,7 @@
       if (!data || data.ok !== true) {
         throw new Error(data && data.message ? data.message : "Permintaan tidak dapat diproses.");
       }
+
       updateServerClock(data.serverTime);
       return data;
     }
@@ -583,39 +751,53 @@
     // ================================================================
     // KAMAR / LACI
     // ================================================================
-    function getGroupedRooms() {
-      const myDevice = getMyDevice();
-      const map = { [myDevice]: [] };
+    function getRoomSummary(roomName) {
+      const name = String(roomName || "");
+      const found = roomSummaries.find(room => String(room.name || "") === name);
+      if (found) return found;
 
-      currentItems.forEach(item => {
-        const roomName = item.room || item.sender || "Perangkat";
-        if (!map[roomName]) map[roomName] = [];
-        map[roomName].push(item);
-      });
-
-      return map;
+      if (name === getMyDevice()) {
+        return {
+          name,
+          count: 0,
+          latestTimestamp: "",
+          isProtected: false,
+          isOwner: false
+        };
+      }
+      return null;
     }
 
-    function getOrderedRoomNames(grouped) {
+    function getVisibleRoomSummaries() {
       const myDevice = getMyDevice();
-      return Object.keys(grouped).sort((a, b) => {
-        if (a === myDevice) return -1;
-        if (b === myDevice) return 1;
+      const map = new Map();
 
-        const aLatest = Math.max(0, ...(grouped[a] || []).map(i => Date.parse(i.timestamp) || 0));
-        const bLatest = Math.max(0, ...(grouped[b] || []).map(i => Date.parse(i.timestamp) || 0));
-        return bLatest - aLatest;
+      roomSummaries.forEach(room => {
+        const name = String(room.name || "").trim();
+        if (name) map.set(name, { ...room, name });
+      });
+
+      if (!map.has(myDevice)) {
+        map.set(myDevice, {
+          name: myDevice,
+          count: 0,
+          latestTimestamp: "",
+          isProtected: false,
+          isOwner: false
+        });
+      }
+
+      return Array.from(map.values()).sort((a, b) => {
+        if (a.name === myDevice) return -1;
+        if (b.name === myDevice) return 1;
+        const aTime = Date.parse(a.latestTimestamp || "") || 0;
+        const bTime = Date.parse(b.latestTimestamp || "") || 0;
+        return bTime - aTime;
       });
     }
 
     function refreshFullUI() {
-      const grouped = getGroupedRooms();
-      const roomNames = getOrderedRoomNames(grouped);
-
-      if (!selectedRoom || !roomNames.includes(selectedRoom)) {
-        selectedRoom = roomNames[0] || getMyDevice();
-      }
-
+      if (!selectedRoom) selectedRoom = getMyDevice();
       renderRoomsList();
       renderActiveRoomContent();
       handleResponsiveLayout();
@@ -624,38 +806,43 @@
     function renderRoomsList() {
       const container = document.getElementById("rooms-list");
       const totalBadge = document.getElementById("total-rooms-badge");
-      const grouped = getGroupedRooms();
       const myDevice = getMyDevice();
 
-      let roomNames = getOrderedRoomNames(grouped);
-      totalBadge.textContent = roomNames.length;
+      let rooms = getVisibleRoomSummaries();
+      totalBadge.textContent = rooms.length;
 
       if (roomFilterQuery.trim()) {
         const q = roomFilterQuery.toLowerCase();
-        roomNames = roomNames.filter(name => name.toLowerCase().includes(q));
+        rooms = rooms.filter(room => room.name.toLowerCase().includes(q));
       }
 
-      if (!roomNames.length) {
+      if (!rooms.length) {
         container.innerHTML = `<div class="py-8 text-center text-xs text-slate-400">Tidak ada ruang yang cocok dengan "${escapeHTML(roomFilterQuery)}"</div>`;
         return;
       }
 
-      container.innerHTML = roomNames.map((name, index) => {
-        const items = grouped[name] || [];
+      container.innerHTML = rooms.map((room, index) => {
+        const name = room.name;
         const isSelected = name === selectedRoom;
-        const isMyDevice = name === myDevice;
-        const latest = [...items].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+        const isOwner = !!room.isOwner;
+        const isOwnCandidate = name === myDevice && !room.isProtected;
+        const isUnlocked = isOwner || roomAccessTokens.has(name);
+        const count = Number(room.count || 0);
 
-        let snippet = "Belum ada kiriman";
-        let timer = "";
-
-        if (latest) {
-          const prefix = latest.sender && latest.sender !== name ? `${latest.sender}: ` : "";
-          if (latest.type === "file") snippet = `${prefix}📎 ${latest.content}`;
-          else if (latest.type === "link") snippet = `${prefix}🔗 ${latest.content}`;
-          else snippet = `${prefix}💬 ${latest.content}`;
-
-          timer = `<span class="js-room-timer text-[10px] font-mono font-bold text-slate-500 flex items-center gap-0.5" data-expires-at="${escapeHTML(latest.expiresAt)}">${formatCountdown(getRemainingSeconds(latest))}</span>`;
+        let statusText = "Ruang terkunci";
+        let statusIcon = "🔒";
+        if (isOwner) {
+          statusText = "Ruang Anda";
+          statusIcon = "🔐";
+        } else if (isOwnCandidate) {
+          statusText = "Atur PIN untuk mengaktifkan";
+          statusIcon = "🔑";
+        } else if (!room.isProtected) {
+          statusText = "Menunggu PIN dari pemilik";
+          statusIcon = "⏳";
+        } else if (isUnlocked) {
+          statusText = "PIN terverifikasi pada sesi ini";
+          statusIcon = "🔓";
         }
 
         return `
@@ -664,40 +851,90 @@
               ? "bg-brand-50/90 border-brand-200 text-brand-950 shadow-xs ring-1 ring-brand-500/20"
               : "bg-white hover:bg-slate-50 border-slate-200 text-slate-800"
           }">
-            <div class="flex items-center justify-between gap-2 mb-1.5">
+            <div class="flex items-center justify-between gap-2">
               <div class="flex items-center gap-2.5 truncate">
-                <div class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs flex-shrink-0 ${isMyDevice ? "bg-brand-600 text-white" : "bg-slate-800 text-white"}">${escapeHTML(name.charAt(0).toUpperCase())}</div>
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs flex-shrink-0 ${isOwner || isOwnCandidate ? "bg-brand-600 text-white" : "bg-slate-800 text-white"}">${escapeHTML(name.charAt(0).toUpperCase())}</div>
                 <div class="truncate">
                   <div class="flex items-center gap-1.5">
                     <span class="font-bold text-xs truncate">${escapeHTML(name)}</span>
-                    ${isMyDevice ? '<span class="text-[9px] bg-brand-100 text-brand-800 px-1.5 py-0.2 rounded font-bold">Saya</span>' : ""}
+                    ${isOwner ? '<span class="text-[9px] bg-brand-100 text-brand-800 px-1.5 py-0.2 rounded font-bold">Saya</span>' : ""}
                   </div>
-                  <p class="text-[11px] text-slate-500 truncate mt-0.5">${escapeHTML(snippet)}</p>
+                  <p class="text-[11px] text-slate-500 truncate mt-0.5">${statusIcon} ${escapeHTML(statusText)}</p>
                 </div>
               </div>
-              <div class="flex flex-col items-end flex-shrink-0 gap-1">
-                ${timer}
-                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full ${items.length ? "bg-brand-100 text-brand-800" : "bg-slate-100 text-slate-400"}">${items.length} kiriman</span>
-              </div>
+              <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full ${count ? "bg-brand-100 text-brand-800" : "bg-slate-100 text-slate-400"}">${count} kiriman</span>
             </div>
           </div>`;
       }).join("");
 
-      const displayedNames = roomNames.slice();
       container.querySelectorAll(".js-room-card").forEach(card => {
         card.addEventListener("click", () => {
           const index = Number(card.dataset.roomIndex);
-          if (displayedNames[index] != null) switchRoom(displayedNames[index]);
+          if (rooms[index]) switchRoom(rooms[index].name);
         });
       });
     }
 
-    function switchRoom(roomName) {
+    async function switchRoom(roomName) {
       selectedRoom = roomName;
       mobileRoomOpen = true;
-      renderRoomsList();
-      renderActiveRoomContent();
-      handleResponsiveLayout();
+      currentItems = [];
+      ownerPinVisible = false;
+
+      const summary = getRoomSummary(roomName);
+      selectedRoomAccess = {
+        exists: !!(summary && summary.isProtected),
+        authorized: !!(summary && (summary.isOwner || roomAccessTokens.has(roomName))),
+        isOwner: !!(summary && summary.isOwner),
+        canClaim: roomName === getMyDevice() && !(summary && summary.isProtected)
+      };
+
+      refreshFullUI();
+
+      if (!POLLING_ENABLED) return;
+
+      if (summary && summary.isProtected && !summary.isOwner && !roomAccessTokens.has(roomName)) {
+        openPinModal("unlock", roomName);
+        return;
+      }
+
+      await fetchFromGAS({ silent: false });
+    }
+
+    function setComposerEnabled(enabled) {
+      const ids = ["file-input", "btn-attach-file", "message-input", "btn-send", "btn-paste-clipboard"];
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.disabled = !enabled;
+        el.classList.toggle("opacity-50", !enabled);
+        el.classList.toggle("cursor-not-allowed", !enabled);
+      });
+    }
+
+    function updateOwnerPinControls() {
+      const controls = document.getElementById("owner-pin-controls");
+      const display = document.getElementById("owner-pin-display");
+      const toggle = document.getElementById("btn-toggle-owner-pin");
+      const change = document.getElementById("btn-change-room-pin");
+
+      const isOwner = selectedRoomAccess.isOwner;
+      const canClaim = selectedRoomAccess.canClaim && selectedRoom === getMyDevice();
+
+      controls.classList.toggle("hidden", !(isOwner || canClaim));
+      controls.classList.toggle("flex", isOwner || canClaim);
+
+      if (canClaim && !selectedRoomAccess.exists) {
+        display.textContent = "Belum";
+        toggle.classList.add("hidden");
+        change.textContent = "Buat PIN";
+        return;
+      }
+
+      toggle.classList.remove("hidden");
+      change.textContent = "Ganti";
+      const storedPin = getStoredRoomPin(selectedRoom);
+      display.textContent = ownerPinVisible && storedPin ? storedPin : "••••••";
     }
 
     function renderActiveRoomContent() {
@@ -708,10 +945,59 @@
       const headerStats = document.getElementById("current-room-stats");
       const container = document.getElementById("room-messages-container");
       const emptyState = document.getElementById("empty-room-state");
+      const clearBtn = document.getElementById("btn-clear-current-room");
+      const summary = getRoomSummary(selectedRoom) || { count: 0, isProtected: false };
 
       headerName.textContent = selectedRoom || "Ruang";
       headerAvatar.textContent = (selectedRoom || "K").charAt(0).toUpperCase();
-      headerBadge.classList.toggle("hidden", selectedRoom !== myDevice);
+      headerBadge.classList.toggle("hidden", !selectedRoomAccess.isOwner);
+      updateOwnerPinControls();
+
+      const authorized = !!selectedRoomAccess.authorized;
+      const count = Number(summary.count || currentItems.length || 0);
+      clearBtn.classList.toggle("hidden", !authorized);
+      setComposerEnabled(authorized);
+
+      if (!selectedRoomAccess.exists) {
+        emptyState.classList.add("hidden");
+        currentItems = [];
+
+        if (selectedRoomAccess.canClaim && selectedRoom === myDevice) {
+          headerStats.textContent = `${count} kiriman • PIN belum diaktifkan`;
+          container.innerHTML = `
+            <div class="bg-white rounded-2xl border border-indigo-200 shadow-sm p-6 text-center">
+              <div class="w-14 h-14 mx-auto rounded-2xl bg-indigo-100 text-indigo-700 flex items-center justify-center mb-3 text-2xl">🔑</div>
+              <h3 class="font-bold text-slate-800 text-sm">Aktifkan PIN Ruang</h3>
+              <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto">Buat PIN 6 digit untuk melindungi seluruh kiriman di ruang ini. Setelah dibuat, perangkat lain wajib memasukkan PIN sebelum isi ruang dikirim oleh backend.</p>
+              <button id="btn-setup-room-pin-inline" class="mt-4 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg">Buat PIN 6 Digit</button>
+            </div>`;
+          document.getElementById("btn-setup-room-pin-inline")?.addEventListener("click", () => openPinModal("create", selectedRoom));
+        } else {
+          headerStats.textContent = `${count} kiriman • belum diaktifkan pemilik`;
+          container.innerHTML = `
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 text-center">
+              <div class="text-3xl mb-2">⏳</div>
+              <h3 class="font-bold text-slate-800 text-sm">Ruang Belum Dilindungi PIN</h3>
+              <p class="text-xs text-slate-500 mt-1">Pemilik ruang perlu membuka aplikasi dari perangkat asal dan membuat PIN terlebih dahulu.</p>
+            </div>`;
+        }
+        return;
+      }
+
+      if (!authorized) {
+        emptyState.classList.add("hidden");
+        currentItems = [];
+        headerStats.textContent = `${count} kiriman • terlindungi PIN`;
+        container.innerHTML = `
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 text-center">
+            <div class="w-14 h-14 mx-auto rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center mb-3 text-2xl">🔒</div>
+            <h3 class="font-bold text-slate-800 text-sm">Ruang Terkunci</h3>
+            <p class="text-xs text-slate-500 mt-1">Masukkan PIN 6 digit untuk melihat isi ruang ${escapeHTML(selectedRoom)}.</p>
+            <button id="btn-unlock-room-inline" class="mt-4 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg">Masukkan PIN</button>
+          </div>`;
+        document.getElementById("btn-unlock-room-inline")?.addEventListener("click", () => openPinModal("unlock", selectedRoom));
+        return;
+      }
 
       const roomItems = currentItems.filter(item => item.room === selectedRoom);
       headerStats.textContent = `${roomItems.length} kiriman • terhapus otomatis dalam ${Math.round(serverTtlSeconds / 60)} menit`;
@@ -872,6 +1158,132 @@
     }
 
     // ================================================================
+    // PIN RUANG
+    // ================================================================
+    function openPinModal(mode, room, pendingAction = "") {
+      const modal = document.getElementById("pin-modal");
+      const title = document.getElementById("pin-modal-title");
+      const desc = document.getElementById("pin-modal-description");
+      const input = document.getElementById("pin-modal-input");
+      const error = document.getElementById("pin-modal-error");
+      const submit = document.getElementById("btn-submit-pin-modal");
+
+      pinModalState = { mode, room, pendingAction };
+      input.value = "";
+      input.type = "password";
+      document.getElementById("btn-toggle-pin-modal").textContent = "👁️";
+      error.textContent = "";
+      error.classList.add("hidden");
+
+      if (mode === "unlock") {
+        title.textContent = `Buka Ruang ${room}`;
+        desc.textContent = "Masukkan PIN 6 digit ruang ini. PIN yang benar hanya membuka ruang selama sesi halaman ini.";
+        submit.textContent = "Buka Ruang";
+      } else if (mode === "create") {
+        title.textContent = "Buat PIN Ruang";
+        desc.textContent = `Buat PIN 6 digit universal untuk semua kiriman di ruang ${room}.`;
+        submit.textContent = "Simpan PIN";
+      } else {
+        title.textContent = "Ganti PIN Ruang";
+        desc.textContent = `Masukkan PIN baru 6 digit untuk ruang ${room}. PIN lama langsung tidak berlaku.`;
+        submit.textContent = "Ganti PIN";
+      }
+
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+      setTimeout(() => input.focus(), 50);
+    }
+
+    function closePinModal() {
+      const modal = document.getElementById("pin-modal");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+      pinModalState = { mode: "", room: "", pendingAction: "" };
+    }
+
+    function setPinModalBusy(busy) {
+      const input = document.getElementById("pin-modal-input");
+      const submit = document.getElementById("btn-submit-pin-modal");
+      const cancel = document.getElementById("btn-cancel-pin-modal");
+      input.disabled = busy;
+      submit.disabled = busy;
+      cancel.disabled = busy;
+      submit.classList.toggle("opacity-60", busy);
+      submit.textContent = busy ? "Memproses..." : (pinModalState.mode === "unlock" ? "Buka Ruang" : pinModalState.mode === "create" ? "Simpan PIN" : "Ganti PIN");
+    }
+
+    async function handlePinModalSubmit() {
+      const input = document.getElementById("pin-modal-input");
+      const error = document.getElementById("pin-modal-error");
+      const pin = input.value.replace(/\D/g, "");
+
+      if (!/^\d{6}$/.test(pin)) {
+        error.textContent = "PIN harus tepat 6 digit angka.";
+        error.classList.remove("hidden");
+        input.focus();
+        return;
+      }
+
+      error.classList.add("hidden");
+      setPinModalBusy(true);
+      const { mode, room, pendingAction } = pinModalState;
+
+      try {
+        if (mode === "unlock") {
+          const data = await postToGAS({ action: "unlockRoom", room, pin });
+          roomAccessTokens.set(room, data.accessToken);
+          selectedRoomAccess = { exists: true, authorized: true, isOwner: false, canClaim: false };
+          patchRoomSummarySecurity(room, { isProtected: true, isOwner: false });
+          closePinModal();
+          refreshFullUI();
+          showToast(`Ruang ${room} berhasil dibuka`, "🔓");
+          await fetchFromGAS({ silent: false });
+        } else if (mode === "create") {
+          await postToGAS({
+            action: "createRoom",
+            room,
+            deviceName: getMyDevice(),
+            ownerToken: getOwnerToken(),
+            pin
+          });
+          storeRoomPin(room, pin);
+          selectedRoomAccess = { exists: true, authorized: true, isOwner: true, canClaim: false };
+          patchRoomSummarySecurity(room, { isProtected: true, isOwner: true });
+          ownerPinVisible = false;
+          closePinModal();
+          refreshFullUI();
+          showToast("PIN ruang berhasil dibuat", "🔐");
+          await fetchFromGAS({ silent: false });
+        } else if (mode === "change") {
+          await postToGAS({
+            action: "changeRoomPin",
+            room,
+            ownerToken: getOwnerToken(),
+            newPin: pin
+          });
+          storeRoomPin(room, pin);
+          roomAccessTokens.delete(room);
+          selectedRoomAccess = { exists: true, authorized: true, isOwner: true, canClaim: false };
+          patchRoomSummarySecurity(room, { isProtected: true, isOwner: true });
+          ownerPinVisible = false;
+          closePinModal();
+          refreshFullUI();
+          showToast("PIN baru aktif. Akses lama perangkat lain dibatalkan.", "✅");
+          await fetchFromGAS({ silent: false });
+        }
+
+        if (pendingAction === "send") {
+          await handleSendMessage();
+        }
+      } catch (err) {
+        error.textContent = err.message || "PIN tidak dapat diproses.";
+        error.classList.remove("hidden");
+      } finally {
+        setPinModalBusy(false);
+      }
+    }
+
+    // ================================================================
     // FILE
     // ================================================================
     function handleFileSelected(e) {
@@ -927,6 +1339,20 @@
         return;
       }
 
+      if (!selectedRoomAccess.exists) {
+        if (selectedRoomAccess.canClaim && room === getMyDevice()) {
+          openPinModal("create", room, "send");
+        } else {
+          showToast("Ruang belum diaktifkan oleh pemilik.", "🔒");
+        }
+        return;
+      }
+
+      if (!selectedRoomAccess.authorized) {
+        openPinModal("unlock", room, "send");
+        return;
+      }
+
       if (selectedFile && !selectedFileBase64) {
         showToast("File sedang disiapkan. Coba tekan Kirim lagi.", "⏳");
         return;
@@ -948,33 +1374,36 @@
       setSubmittingState(true);
 
       try {
-          setSyncStatus("syncing", "Mengirim...");
-          const data = await postToGAS({
-            action: "send",
-            room,
-            sender,
-            type,
-            content,
-            accessUrl,
-            fileBase64: selectedFileBase64 || "",
-            fileName: selectedFile ? selectedFile.name : "",
-            fileMimeType: selectedFile ? selectedFile.type : ""
-          });
+        setSyncStatus("syncing", "Mengirim...");
+        const data = await postToGAS({
+          action: "send",
+          room,
+          sender,
+          ownerToken: getOwnerToken(),
+          roomAccessToken: getRoomAccessToken(room),
+          type,
+          content,
+          accessUrl,
+          fileBase64: selectedFileBase64 || "",
+          fileName: selectedFile ? selectedFile.name : "",
+          fileMimeType: selectedFile ? selectedFile.type : ""
+        });
 
-          if (data.item) {
-            currentItems.unshift(normalizeItem(data.item));
-            filterExpiredLocally();
-            refreshFullUI();
-          }
+        if (data.item) {
+          currentItems.unshift(normalizeItem(data.item));
+          filterExpiredLocally();
+          refreshFullUI();
+        }
 
-          input.value = "";
-          cancelSelectedFile();
-          showToast(`Terkirim ke ruang ${room}`, "🚀");
-          await fetchFromGAS({ silent: true });
+        input.value = "";
+        cancelSelectedFile();
+        showToast(`Terkirim ke ruang ${room}`, "🚀");
+        await fetchFromGAS({ silent: true });
       } catch (err) {
         console.error(err);
         setSyncStatus("offline", "Gagal mengirim");
         showToast(err.message || "Gagal mengirim", "❌");
+        await fetchFromGAS({ silent: true });
       } finally {
         setSubmittingState(false);
       }
@@ -987,20 +1416,32 @@
       const card = document.getElementById(`card-${messageId}`);
       if (card) card.classList.add("opacity-40");
       try {
-        await postToGAS({ action: "delete", messageId });
+        await postToGAS({
+          action: "delete",
+          messageId,
+          ownerToken: getOwnerToken(),
+          roomAccessToken: getRoomAccessToken(selectedRoom)
+        });
         currentItems = currentItems.filter(item => item.id !== messageId);
         refreshFullUI();
         showToast("Kiriman berhasil dihapus", "🗑️");
+        await fetchFromGAS({ silent: true });
       } catch (err) {
         if (card) card.classList.remove("opacity-40");
         console.error("Gagal menghapus kiriman:", err);
         showToast(err.message || "Gagal menghapus kiriman", "❌");
+        await fetchFromGAS({ silent: true });
       }
     }
 
     async function handleClearCurrentRoom() {
       const room = selectedRoom;
       const roomItems = currentItems.filter(item => item.room === room);
+
+      if (!selectedRoomAccess.authorized) {
+        showToast("Ruang masih terkunci.", "🔒");
+        return;
+      }
 
       if (!roomItems.length) {
         showToast("Ruang ini sudah kosong", "ℹ️");
@@ -1009,14 +1450,21 @@
 
       if (!window.confirm(`Hapus semua ${roomItems.length} kiriman dari ruang "${room}"?`)) return;
       try {
-        const data = await postToGAS({ action: "clearRoom", room });
+        const data = await postToGAS({
+          action: "clearRoom",
+          room,
+          ownerToken: getOwnerToken(),
+          roomAccessToken: getRoomAccessToken(room)
+        });
         const deletedCount = Number(data.deletedCount || 0);
-        currentItems = currentItems.filter(item => item.room !== room);
+        currentItems = [];
         refreshFullUI();
         showToast(`${deletedCount} kiriman dihapus dari ruang ${room}`, "🧹");
+        await fetchFromGAS({ silent: true });
       } catch (err) {
         console.error("Gagal menghapus semua kiriman:", err);
         showToast(err.message || "Gagal menghapus semua kiriman", "❌");
+        await fetchFromGAS({ silent: true });
       }
     }
 
@@ -1051,6 +1499,43 @@
     function setupEventListeners() {
       document.getElementById("btn-cancel-file").addEventListener("click", cancelSelectedFile);
       document.getElementById("btn-clear-current-room").addEventListener("click", handleClearCurrentRoom);
+
+      document.getElementById("btn-toggle-owner-pin").addEventListener("click", () => {
+        const storedPin = getStoredRoomPin(selectedRoom);
+        if (!storedPin) {
+          showToast("PIN tidak tersimpan di browser ini. Gunakan Ganti PIN.", "ℹ️");
+          return;
+        }
+        ownerPinVisible = !ownerPinVisible;
+        updateOwnerPinControls();
+      });
+
+      document.getElementById("btn-change-room-pin").addEventListener("click", () => {
+        if (selectedRoomAccess.canClaim && !selectedRoomAccess.exists) {
+          openPinModal("create", selectedRoom);
+        } else if (selectedRoomAccess.isOwner) {
+          openPinModal("change", selectedRoom);
+        }
+      });
+
+      document.getElementById("pin-modal-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        handlePinModalSubmit();
+      });
+
+      document.getElementById("pin-modal-input").addEventListener("input", (e) => {
+        e.target.value = e.target.value.replace(/\D/g, "").slice(0, 6);
+      });
+
+      document.getElementById("btn-toggle-pin-modal").addEventListener("click", () => {
+        const input = document.getElementById("pin-modal-input");
+        const btn = document.getElementById("btn-toggle-pin-modal");
+        input.type = input.type === "password" ? "text" : "password";
+        btn.textContent = input.type === "password" ? "👁️" : "🙈";
+        input.focus();
+      });
+
+      document.getElementById("btn-cancel-pin-modal").addEventListener("click", closePinModal);
 
       document.getElementById("search-room-input").addEventListener("input", (e) => {
         roomFilterQuery = e.target.value;
@@ -1106,8 +1591,10 @@
         btnText.textContent = "Kirim";
         btnIcon.classList.remove("hidden");
         btnSpinner.classList.add("hidden");
-        btnSend.disabled = false;
-        btnSend.classList.remove("opacity-75", "cursor-not-allowed");
+        const canSend = !!selectedRoomAccess.authorized;
+        btnSend.disabled = !canSend;
+        btnSend.classList.toggle("opacity-75", !canSend);
+        btnSend.classList.toggle("cursor-not-allowed", !canSend);
       }
     }
 
