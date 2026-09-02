@@ -264,7 +264,7 @@
           </div>
 
           <!-- Form Input Pengiriman -->
-          <form id="send-form" class="flex items-center gap-2" onsubmit="event.preventDefault(); handleSendMessage();">
+          <form id="send-form" class="flex items-end gap-2" onsubmit="event.preventDefault(); handleSendMessage();">
             <input type="file" id="file-input" class="hidden" onchange="handleFileSelected(event)">
 
             <!-- Tombol Lampirkan Dokumen -->
@@ -291,15 +291,16 @@
               <span>Tempel</span>
             </button>
 
-            <!-- Kolom Input Teks/URL -->
+            <!-- Kolom Input Teks/URL: auto-grow 1–6 baris -->
             <div class="relative flex-1">
-              <input 
-                type="text" 
-                id="message-input" 
-                placeholder="Tulis pesan atau tempel link..." 
-                class="w-full bg-slate-100 text-slate-800 placeholder-slate-400 text-xs sm:text-sm rounded-xl px-3.5 py-2.5 border border-transparent focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition"
+              <textarea
+                id="message-input"
+                rows="1"
+                placeholder="Tulis pesan atau tempel link..."
+                class="w-full bg-slate-100 text-slate-800 placeholder-slate-400 text-xs sm:text-sm rounded-xl px-3.5 py-2.5 border border-transparent focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition resize-none overflow-y-hidden leading-5 block"
                 autocomplete="off"
-              />
+                aria-label="Tulis pesan"
+              ></textarea>
             </div>
 
             <!-- Tombol Kirim -->
@@ -416,7 +417,7 @@
   <script>
     // ================================================================
     // ChatSofyan - Frontend GitHub Pages
-    // ChatSofyan Revisi 014 - GitHub Pages
+    // ChatSofyan Revisi 015 - GitHub Pages
     // ================================================================
 
     const APP_CONFIG = Object.freeze({
@@ -441,6 +442,9 @@
     const POLLING_ENABLED = IS_LOCAL_ENVIRONMENT || IS_PRODUCTION_ENVIRONMENT;
 
     let currentItems = [];
+    // Cache pesan per ruang selama sesi login. UI selalu membaca cache terlebih dahulu,
+    // sedangkan sinkronisasi GAS berjalan di latar belakang (stale-while-revalidate).
+    const roomMessageCache = new Map();
     let roomSummaries = [];
     let selectedRoom = "";
     let selectedRoomAccess = { exists: false, authorized: false, isOwner: false, canClaim: false };
@@ -696,8 +700,8 @@
         saveAccountState();
         storeRoomPin(accountState.username, pin);
         roomAccessTokens.clear();
+        clearAllMessageCaches();
         selectedRoom = accountState.username;
-        currentItems = [];
         selectedRoomAccess = { exists: true, authorized: true, isOwner: true, canClaim: false };
         ownerPinVisible = false;
         patchRoomSummarySecurity(accountState.username, { isProtected: true, isOwner: true, count: 0 });
@@ -722,8 +726,8 @@
       accountState = { active: false, username: "", sessionToken: "", expiresAt: "", status: "NO_SESSION" };
       markAccountIdentityChanged();
       roomAccessTokens.clear();
+      clearAllMessageCaches();
       selectedRoom = "";
-      currentItems = [];
       selectedRoomAccess = { exists: false, authorized: false, isOwner: false, canClaim: false };
       ownerPinVisible = false;
       mobileRoomOpen = false;
@@ -864,6 +868,113 @@
       return Math.round(number * factor);
     }
 
+    function getCachedRoomItems(room) {
+      const name = String(room || "");
+      const items = roomMessageCache.get(name) || [];
+      return items.filter(item => {
+        if (String(item.status || "active").toLowerCase() !== "active") return false;
+        return getRemainingSeconds(item) > 0;
+      });
+    }
+
+    function setRoomCache(room, items) {
+      const name = String(room || "");
+      if (!name) return [];
+      const clean = (Array.isArray(items) ? items : []).filter(item =>
+        String(item.status || "active").toLowerCase() === "active" && getRemainingSeconds(item) > 0
+      );
+      roomMessageCache.set(name, clean);
+      if (selectedRoom === name) currentItems = clean.slice();
+      return clean;
+    }
+
+    function reconcileRoomCacheFromServer(room, serverItems) {
+      const name = String(room || "");
+      if (!name) return [];
+
+      const existing = roomMessageCache.get(name) || [];
+      const transient = existing.filter(item => ["pending", "failed"].includes(String(item.deliveryStatus || "")));
+      const fresh = (Array.isArray(serverItems) ? serverItems : [])
+        .map(item => normalizeItem({ ...item, deliveryStatus: "sent", localOnly: false }))
+        .filter(item => item.status === "active" && getRemainingSeconds(item) > 0);
+
+      const freshIds = new Set(fresh.map(item => String(item.id || "")));
+      const consumedTransientIds = new Set();
+
+      // Jika polling lebih cepat daripada respons POST, server bisa sudah memuat pesan
+      // yang masih berstatus pending di UI. Cocokkan secara konservatif agar tidak
+      // muncul duplikat sesaat.
+      fresh.forEach(serverItem => {
+        const serverTime = Date.parse(serverItem.timestamp || "") || 0;
+        const match = transient.find(localItem => {
+          if (consumedTransientIds.has(String(localItem.id))) return false;
+          const localTime = Date.parse(localItem.timestamp || "") || 0;
+          return localItem.room === serverItem.room &&
+            localItem.sender === serverItem.sender &&
+            localItem.type === serverItem.type &&
+            localItem.content === serverItem.content &&
+            Math.abs(serverTime - localTime) <= 60000;
+        });
+        if (match) consumedTransientIds.add(String(match.id));
+      });
+
+      const preservedTransient = transient.filter(item =>
+        !freshIds.has(String(item.id || "")) &&
+        !consumedTransientIds.has(String(item.id || "")) &&
+        getRemainingSeconds(item) > 0
+      );
+      const merged = [...fresh, ...preservedTransient];
+      roomMessageCache.set(name, merged);
+      if (selectedRoom === name) currentItems = merged.slice();
+      return merged;
+    }
+
+    function upsertCachedItem(room, item) {
+      const name = String(room || "");
+      if (!name || !item) return;
+      const items = (roomMessageCache.get(name) || []).slice();
+      const index = items.findIndex(existing => String(existing.id) === String(item.id));
+      if (index >= 0) items[index] = item;
+      else items.push(item);
+      setRoomCache(name, items);
+    }
+
+    function replaceCachedItem(room, oldId, item) {
+      const name = String(room || "");
+      const items = (roomMessageCache.get(name) || []).slice();
+      const index = items.findIndex(existing => String(existing.id) === String(oldId));
+      if (index >= 0) {
+        items[index] = item;
+      } else {
+        const confirmedIndex = items.findIndex(existing => String(existing.id) === String(item.id));
+        if (confirmedIndex >= 0) items[confirmedIndex] = item;
+        else items.push(item);
+      }
+      setRoomCache(name, items);
+    }
+
+    function removeCachedItem(room, itemId) {
+      const name = String(room || "");
+      const items = (roomMessageCache.get(name) || []).filter(item => String(item.id) !== String(itemId));
+      setRoomCache(name, items);
+    }
+
+    function clearRoomMessageCache(room) {
+      const name = String(room || "");
+      roomMessageCache.delete(name);
+      if (selectedRoom === name) currentItems = [];
+    }
+
+    function clearAllMessageCaches() {
+      roomMessageCache.clear();
+      currentItems = [];
+    }
+
+    function syncCurrentItemsFromCache(room = selectedRoom) {
+      currentItems = getCachedRoomItems(room).slice();
+      return currentItems;
+    }
+
     function normalizeItem(item) {
       const timestamp = item.timestamp || new Date().toISOString();
       const fallbackExpiry = new Date(Date.parse(timestamp) + serverTtlSeconds * 1000).toISOString();
@@ -878,7 +989,11 @@
         accessUrl: String(item.accessUrl || ""),
         fileSize: parseLegacyFileSize(item.fileSize),
         mimeType: String(item.mimeType || ""),
-        status: String(item.status || "active").toLowerCase()
+        status: String(item.status || "active").toLowerCase(),
+        deliveryStatus: String(item.deliveryStatus || "sent").toLowerCase(),
+        localOnly: !!item.localOnly,
+        errorMessage: String(item.errorMessage || ""),
+        retryContext: item.retryContext || null
       };
     }
 
@@ -894,7 +1009,12 @@
     }
 
     function filterExpiredLocally() {
-      currentItems = currentItems.filter(item => item.status === "active" && getRemainingSeconds(item) > 0);
+      for (const [room, items] of roomMessageCache.entries()) {
+        const filtered = items.filter(item => item.status === "active" && getRemainingSeconds(item) > 0);
+        if (filtered.length) roomMessageCache.set(room, filtered);
+        else roomMessageCache.delete(room);
+      }
+      syncCurrentItemsFromCache(selectedRoom);
     }
 
     // ================================================================
@@ -904,7 +1024,7 @@
       serverOffsetMs = 0;
       serverTtlSeconds = APP_CONFIG.DEFAULT_TTL_SECONDS;
       serverMaxFileBytes = APP_CONFIG.DEFAULT_MAX_FILE_BYTES;
-      currentItems = [];
+      syncCurrentItemsFromCache(selectedRoom);
       roomSummaries = [];
       selectedRoomAccess = { exists: false, authorized: false, isOwner: false, canClaim: false };
       refreshFullUI();
@@ -988,16 +1108,29 @@
 
         if (accountState.active && !applyServerAccountState(data.account)) return true;
 
+        const responseRoomAccess = data.roomAccess || { exists: false, authorized: false, isOwner: false, canClaim: false };
+
+        // Simpan hasil server ke cache ruang asal request meskipun user sudah pindah ruang.
+        // Pending/gagal lokal dipertahankan sampai proses kirim selesai atau dihapus user.
+        if (responseRoomAccess.authorized && Array.isArray(data.items) && previousRoom) {
+          reconcileRoomCacheFromServer(previousRoom, data.items);
+        }
+
+        if (previousRoom !== selectedRoom) {
+          scheduleFreshSync(60, true);
+        }
+
         if (previousRoom === selectedRoom) {
-          selectedRoomAccess = data.roomAccess || { exists: false, authorized: false, isOwner: false, canClaim: false };
-          if (selectedRoomAccess.authorized && Array.isArray(data.items)) {
-            currentItems = data.items.map(normalizeItem).filter(item => item.status === "active" && getRemainingSeconds(item) > 0);
-          } else {
-            currentItems = [];
+          selectedRoomAccess = responseRoomAccess;
+          if (selectedRoomAccess.authorized) {
+            syncCurrentItemsFromCache(selectedRoom);
           }
 
-          if (selectedRoomAccess.exists && !selectedRoomAccess.authorized && roomAccessTokens.has(selectedRoom)) {
-            roomAccessTokens.delete(selectedRoom);
+          // Hanya status otorisasi yang benar-benar ditolak server yang boleh menutup ruang.
+          // Kegagalan jaringan tidak pernah masuk blok ini, sehingga cache tetap tampil.
+          if (selectedRoomAccess.exists && !selectedRoomAccess.authorized) {
+            if (roomAccessTokens.has(selectedRoom)) roomAccessTokens.delete(selectedRoom);
+            clearRoomMessageCache(selectedRoom);
             if (wasAuthorized) showToast("Akses ruang berubah. Masukkan PIN kembali.", "lock");
           }
         }
@@ -1117,7 +1250,8 @@
         const isSelected = name === selectedRoom;
         const isOwner = !!room.isOwner;
         const isUnlocked = isOwner || roomAccessTokens.has(name);
-        const count = Number(room.count || 0);
+        const cachedCount = getCachedRoomItems(name).filter(item => item.deliveryStatus !== "failed").length;
+        const count = Math.max(Number(room.count || 0), cachedCount);
 
         let statusText = "Ruang terkunci";
         let statusIcon = "lock";
@@ -1162,11 +1296,10 @@
       });
     }
 
-    async function switchRoom(roomName) {
+    function switchRoom(roomName) {
       selectedRoom = roomName;
       mobileRoomOpen = true;
       forceScrollToBottom = true;
-      currentItems = [];
       ownerPinVisible = false;
 
       const summary = getRoomSummary(roomName);
@@ -1177,6 +1310,9 @@
         canClaim: false
       };
 
+      // Cache-first: tampilkan data terakhir ruang ini SEKETIKA.
+      // Data server diperbarui diam-diam setelah UI sudah tampil.
+      syncCurrentItemsFromCache(roomName);
       refreshFullUI();
 
       if (!POLLING_ENABLED) return;
@@ -1186,7 +1322,7 @@
         return;
       }
 
-      await fetchFromGAS({ silent: false });
+      void fetchFromGAS({ silent: true });
     }
 
     function setComposerEnabled(enabled) {
@@ -1248,7 +1384,6 @@
 
       if (!selectedRoom) {
         emptyState.classList.add("hidden");
-        currentItems = [];
         headerStats.textContent = "Masuk atau buat akun untuk mulai";
         container.innerHTML = `
           <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 text-center">
@@ -1261,7 +1396,6 @@
 
       if (!selectedRoomAccess.exists) {
         emptyState.classList.add("hidden");
-        currentItems = [];
         headerStats.textContent = `${count} kiriman • ruang tidak memiliki PIN`;
         container.innerHTML = `
           <div class="bg-white rounded-2xl border border-amber-200 shadow-sm p-6 text-center">
@@ -1274,7 +1408,6 @@
 
       if (!authorized) {
         emptyState.classList.add("hidden");
-        currentItems = [];
         headerStats.textContent = `${count} kiriman • terlindungi PIN`;
         container.innerHTML = `
           <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 text-center">
@@ -1312,17 +1445,21 @@
                 <span class="truncate">${escapeHTML(senderLabel)} · ${escapeHTML(timeFormatted)}</span>
               </div>
               <div class="flex items-center gap-2 flex-shrink-0">
+                ${renderDeliveryStatus(item)}
+                ${item.deliveryStatus === "sent" ? `
                 <div class="flex items-center gap-1" title="Sisa masa aktif">
                   <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <span class="js-countdown text-[11px] font-mono font-bold px-2 py-0.5 rounded-full ${countdownClass(remaining)}" data-expires-at="${escapeHTML(item.expiresAt)}">${formatCountdown(remaining)}</span>
-                </div>
+                </div>` : ""}
+                ${item.localOnly ? `
+                <button data-local-remove-id="${escapeHTML(item.id)}" class="js-local-remove-btn p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Hapus kiriman lokal">
+                  ${iconSvg("trash", "w-4 h-4")}
+                </button>` : `
                 <button data-delete-id="${escapeHTML(item.id)}" class="js-delete-btn p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Hapus kiriman ini">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
+                  ${iconSvg("trash", "w-4 h-4")}
+                </button>`}
               </div>
             </div>
             <div>${renderMessageContent(item)}</div>
@@ -1338,6 +1475,17 @@
         }
         forceScrollToBottom = false;
       });
+    }
+
+    function renderDeliveryStatus(item) {
+      const status = String(item.deliveryStatus || "sent");
+      if (status === "pending") {
+        return `<span class="inline-flex items-center justify-center text-brand-600" title="Sedang dikirim">${iconSvg("loader", "w-4 h-4 animate-spin")}</span>`;
+      }
+      if (status === "failed") {
+        return `<button data-retry-send-id="${escapeHTML(item.id)}" class="js-retry-send-btn inline-flex items-center gap-1 text-rose-600 hover:text-rose-700 text-[10px] font-bold" title="${escapeHTML(item.errorMessage || "Gagal mengirim. Klik untuk mencoba lagi.")}">${iconSvg("retry", "w-4 h-4")}<span class="hidden sm:inline">Coba lagi</span></button>`;
+      }
+      return "";
     }
 
     function renderMessageContent(item) {
@@ -1390,10 +1538,15 @@
                 <p class="text-[11px] text-slate-500 mt-0.5">${escapeHTML(sizeText)} • tersedia sementara</p>
               </div>
             </div>
+            ${item.deliveryStatus === "sent" ? `
             <a href="${escapeHTML(item.accessUrl || "#")}" target="_blank" rel="noopener noreferrer" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-lg shadow-sm flex items-center justify-center gap-1.5 transition flex-shrink-0">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
               <span>Unduh File</span>
-            </a>
+            </a>` : `
+            <div class="px-3 py-2 bg-white text-slate-500 text-xs font-semibold rounded-lg border border-slate-200 flex items-center gap-1.5 flex-shrink-0">
+              ${item.deliveryStatus === "failed" ? iconSvg("error", "w-4 h-4 text-rose-500") : iconSvg("loader", "w-4 h-4 animate-spin text-brand-600")}
+              <span>${item.deliveryStatus === "failed" ? "Gagal" : "Mengunggah"}</span>
+            </div>`}
           </div>`;
       }
 
@@ -1407,6 +1560,14 @@
 
       document.querySelectorAll(".js-copy-btn").forEach(btn => {
         btn.addEventListener("click", () => copyToClipboard(btn.dataset.copy || ""));
+      });
+
+      document.querySelectorAll(".js-retry-send-btn").forEach(btn => {
+        btn.addEventListener("click", () => retryPendingMessage(btn.dataset.retrySendId));
+      });
+
+      document.querySelectorAll(".js-local-remove-btn").forEach(btn => {
+        btn.addEventListener("click", () => removeLocalPendingMessage(btn.dataset.localRemoveId));
       });
     }
 
@@ -1531,10 +1692,11 @@
           roomAccessTokens.set(room, data.accessToken);
           selectedRoomAccess = { exists: true, authorized: true, isOwner: false, canClaim: false };
           patchRoomSummarySecurity(room, { isProtected: true, isOwner: false });
+          syncCurrentItemsFromCache(room);
           closePinModal();
           refreshFullUI();
           showToast(`Ruang ${room} berhasil dibuka`, "unlock");
-          await fetchFromGAS({ silent: false });
+          void fetchFromGAS({ silent: true });
         } else if (mode === "change") {
           const data = await postToGAS({
             action: "changeRoomPin",
@@ -1599,9 +1761,12 @@
       document.getElementById("file-preview-bar").classList.remove("hidden");
       document.getElementById("message-input").placeholder = "File siap dikirim. Tekan Kirim...";
 
+      const fileBeingRead = file;
       const reader = new FileReader();
       reader.onload = (event) => {
-        selectedFileBase64 = String(event.target.result || "").split(",")[1] || "";
+        if (selectedFile === fileBeingRead) {
+          selectedFileBase64 = String(event.target.result || "").split(",")[1] || "";
+        }
       };
       reader.onerror = () => {
         cancelSelectedFile();
@@ -1685,11 +1850,145 @@
     }
 
     // ================================================================
-    // SEND
+    // SEND OPTIMISTIK / NON-BLOCKING
     // ================================================================
-    async function handleSendMessage() {
-      if (isSubmitting) return;
+    function makeLocalMessageId() {
+      return `local_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    }
 
+    function readFileAsBase64(file) {
+      return new Promise((resolve, reject) => {
+        if (!file) return resolve("");
+        const reader = new FileReader();
+        reader.onload = event => resolve(String(event.target?.result || "").split(",")[1] || "");
+        reader.onerror = () => reject(new Error("File tidak dapat dibaca."));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function resetComposerHeight() {
+      const input = document.getElementById("message-input");
+      if (!input) return;
+      input.style.height = "auto";
+      input.style.overflowY = "hidden";
+    }
+
+    function autoGrowComposer() {
+      const input = document.getElementById("message-input");
+      if (!input) return;
+      input.style.height = "auto";
+      const style = window.getComputedStyle(input);
+      const lineHeight = parseFloat(style.lineHeight) || 20;
+      const paddingTop = parseFloat(style.paddingTop) || 0;
+      const paddingBottom = parseFloat(style.paddingBottom) || 0;
+      const borderTop = parseFloat(style.borderTopWidth) || 0;
+      const borderBottom = parseFloat(style.borderBottomWidth) || 0;
+      const maxHeight = lineHeight * 6 + paddingTop + paddingBottom + borderTop + borderBottom;
+      const targetHeight = Math.min(input.scrollHeight, maxHeight);
+      input.style.height = `${Math.max(targetHeight, lineHeight + paddingTop + paddingBottom + borderTop + borderBottom)}px`;
+      input.style.overflowY = input.scrollHeight > maxHeight ? "auto" : "hidden";
+    }
+
+    function createOptimisticItem(context) {
+      const now = new Date();
+      return normalizeItem({
+        id: context.localId,
+        timestamp: now.toISOString(),
+        expiresAt: new Date(now.getTime() + serverTtlSeconds * 1000).toISOString(),
+        room: context.room,
+        sender: context.sender,
+        type: context.type,
+        content: context.content,
+        accessUrl: context.accessUrl || "",
+        fileSize: context.file ? context.file.size : 0,
+        mimeType: context.file ? context.file.type : "",
+        status: "active",
+        deliveryStatus: "pending",
+        localOnly: true,
+        retryContext: context
+      });
+    }
+
+    function updateOptimisticStatus(room, localId, deliveryStatus, errorMessage = "") {
+      const items = roomMessageCache.get(room) || [];
+      const item = items.find(entry => String(entry.id) === String(localId));
+      if (!item) return;
+      upsertCachedItem(room, {
+        ...item,
+        deliveryStatus,
+        errorMessage,
+        localOnly: true
+      });
+      if (selectedRoom === room) refreshFullUI();
+    }
+
+    async function processQueuedSend(context) {
+      try {
+        let fileBase64 = context.fileBase64 || "";
+        if (context.file && !fileBase64) {
+          fileBase64 = await readFileAsBase64(context.file);
+        }
+
+        const data = await postToGAS({
+          action: "send",
+          room: context.room,
+          sender: context.sender,
+          sessionToken: getSessionToken(),
+          roomAccessToken: getRoomAccessToken(context.room),
+          type: context.type,
+          content: context.content,
+          accessUrl: context.accessUrl || "",
+          fileBase64,
+          fileName: context.file ? context.file.name : "",
+          fileMimeType: context.file ? context.file.type : ""
+        });
+
+        if (data.item) {
+          const confirmed = normalizeItem({ ...data.item, deliveryStatus: "sent", localOnly: false });
+          replaceCachedItem(context.room, context.localId, confirmed);
+          const summary = getRoomSummary(context.room);
+          if (summary) {
+            const cachedCount = getCachedRoomItems(context.room).filter(item => item.deliveryStatus !== "failed").length;
+            patchRoomSummarySecurity(context.room, {
+              count: Math.max(Number(summary.count || 0), cachedCount),
+              latestTimestamp: confirmed.timestamp || summary.latestTimestamp || ""
+            });
+          }
+          if (selectedRoom === context.room) {
+            forceScrollToBottom = true;
+            refreshFullUI();
+            void fetchFromGAS({ silent: true });
+          } else {
+            renderRoomsList();
+          }
+        }
+      } catch (err) {
+        console.error("Gagal mengirim kiriman optimistik:", err);
+        if (handleAuthApiError(err)) return;
+        updateOptimisticStatus(context.room, context.localId, "failed", err.message || "Gagal mengirim");
+        showToast(err.message || "Gagal mengirim", "error");
+      }
+    }
+
+    function retryPendingMessage(localId) {
+      const room = selectedRoom;
+      const item = (roomMessageCache.get(room) || []).find(entry => String(entry.id) === String(localId));
+      if (!item || !item.retryContext) return;
+      if (!accountState.active || !selectedRoomAccess.authorized) {
+        showToast("Ruang tidak dapat digunakan untuk mengirim ulang.", "lock");
+        return;
+      }
+      const context = { ...item.retryContext, room, sender: getMyDevice() };
+      updateOptimisticStatus(room, localId, "pending", "");
+      void processQueuedSend(context);
+    }
+
+    function removeLocalPendingMessage(localId) {
+      removeCachedItem(selectedRoom, localId);
+      refreshFullUI();
+    }
+
+    function handleSendMessage() {
       if (!accountState.active) {
         showAccountModal("Silakan masuk atau buat akun terlebih dahulu.", "login");
         return;
@@ -1701,7 +2000,6 @@
       const room = selectedRoom || sender;
 
       if (!textVal && !selectedFile) {
-        showToast("Tulis pesan atau lampirkan file terlebih dahulu", "info");
         return;
       }
 
@@ -1715,68 +2013,62 @@
         return;
       }
 
-      if (selectedFile && !selectedFileBase64) {
-        showToast("File sedang disiapkan. Coba tekan Kirim lagi.", "clock");
-        return;
-      }
-
+      const fileSnapshot = selectedFile;
+      const fileBase64Snapshot = selectedFileBase64 || "";
       let type = "text";
       let content = textVal;
       let accessUrl = "";
 
-      if (selectedFile) {
+      if (fileSnapshot) {
         type = "file";
-        content = selectedFile.name;
+        content = fileSnapshot.name;
       } else if (isValidURL(textVal)) {
         type = "link";
         content = textVal;
         accessUrl = textVal;
       }
 
-      setSubmittingState(true);
+      const localId = makeLocalMessageId();
+      const context = {
+        localId,
+        room,
+        sender,
+        type,
+        content,
+        accessUrl,
+        file: fileSnapshot,
+        fileBase64: fileBase64Snapshot
+      };
 
-      try {
-        setSyncStatus("syncing", "Mengirim...");
-        const data = await postToGAS({
-          action: "send",
-          room,
-          sender,
-          sessionToken: getSessionToken(),
-          roomAccessToken: getRoomAccessToken(room),
-          type,
-          content,
-          accessUrl,
-          fileBase64: selectedFileBase64 || "",
-          fileName: selectedFile ? selectedFile.name : "",
-          fileMimeType: selectedFile ? selectedFile.type : ""
-        });
+      // UI langsung berubah sebelum request jaringan dimulai.
+      const optimisticItem = createOptimisticItem(context);
+      upsertCachedItem(room, optimisticItem);
+      const summary = getRoomSummary(room);
+      patchRoomSummarySecurity(room, {
+        isProtected: true,
+        isOwner: !!selectedRoomAccess.isOwner,
+        count: Number(summary?.count || 0) + 1,
+        latestTimestamp: optimisticItem.timestamp
+      });
 
-        if (data.item) {
-          currentItems.push(normalizeItem(data.item));
-          filterExpiredLocally();
-          forceScrollToBottom = true;
-          refreshFullUI();
-        }
+      input.value = "";
+      cancelSelectedFile();
+      resetComposerHeight();
+      forceScrollToBottom = true;
+      syncCurrentItemsFromCache(room);
+      refreshFullUI();
+      input.focus();
 
-        input.value = "";
-        cancelSelectedFile();
-        showToast(`Terkirim ke ruang ${room}`, "send");
-        await fetchFromGAS({ silent: true });
-      } catch (err) {
-        console.error(err);
-        if (handleAuthApiError(err)) return;
-        setSyncStatus("offline", "Gagal mengirim");
-        showToast(err.message || "Gagal mengirim", "error");
-        await fetchFromGAS({ silent: true });
-      } finally {
-        setSubmittingState(false);
-      }
+      // Tidak await: composer dan tombol Kirim tetap responsif untuk kiriman berikutnya.
+      void processQueuedSend(context);
     }
 
     // ================================================================
     // DELETE / CLEAR ROOM
     // ================================================================
     async function handleDeleteItem(messageId) {
+      const sourceItem = (roomMessageCache.get(selectedRoom) || []).find(item => String(item.id) === String(messageId));
+      const room = sourceItem?.room || selectedRoom;
       const card = document.getElementById(`card-${messageId}`);
       if (card) card.classList.add("opacity-40");
       try {
@@ -1784,9 +2076,9 @@
           action: "delete",
           messageId,
           sessionToken: getSessionToken(),
-          roomAccessToken: getRoomAccessToken(selectedRoom)
+          roomAccessToken: getRoomAccessToken(room)
         });
-        currentItems = currentItems.filter(item => item.id !== messageId);
+        removeCachedItem(room, messageId);
         refreshFullUI();
         showToast("Kiriman berhasil dihapus", "trash");
         await fetchFromGAS({ silent: true });
@@ -1822,7 +2114,7 @@
           roomAccessToken: getRoomAccessToken(room)
         });
         const deletedCount = Number(data.deletedCount || 0);
-        currentItems = [];
+        clearRoomMessageCache(room);
         refreshFullUI();
         showToast(`${deletedCount} kiriman dihapus dari ruang ${room}`, "trash");
         await fetchFromGAS({ silent: true });
@@ -1866,6 +2158,17 @@
       document.getElementById("btn-cancel-file").addEventListener("click", cancelSelectedFile);
       document.getElementById("btn-clear-current-room").addEventListener("click", handleClearCurrentRoom);
       setupDragAndDrop();
+
+      const messageInput = document.getElementById("message-input");
+      messageInput.addEventListener("input", autoGrowComposer);
+      messageInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
+          event.preventDefault();
+          handleSendMessage();
+        }
+        // Shift+Enter dibiarkan default untuk membuat baris baru.
+      });
+      autoGrowComposer();
 
       document.getElementById("btn-toggle-owner-pin").addEventListener("click", () => {
         const storedPin = getStoredRoomPin(selectedRoom);
@@ -1943,6 +2246,7 @@
             if (text) {
               const input = document.getElementById("message-input");
               input.value = text;
+              autoGrowComposer();
               input.focus();
               showToast("Teks berhasil ditempel", "copy");
             }
@@ -1978,6 +2282,8 @@
         user: `<svg ${common}><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 7a3 3 0 11-6 0 3 3 0 016 0ZM5.5 20a6.5 6.5 0 0113 0"/></svg>`,
         clock: `<svg ${common}><circle cx="12" cy="12" r="9" stroke-width="1.8"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 7v5l3 2"/></svg>`,
         send: `<svg ${common}><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m3 11 17-7-7 17-2.3-7.7L3 11Zm7.7 2.3L14 10"/></svg>`,
+        loader: `<svg ${common}><path stroke-linecap="round" stroke-width="1.8" d="M12 3a9 9 0 1 1-6.36 2.64"/></svg>`,
+        retry: `<svg ${common}><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 7v5h-5M4 17v-5h5m10.2-2A8 8 0 0 0 6.1 6.1L4 8m16 8-2.1 1.9A8 8 0 0 1 4.8 14"/></svg>`,
         trash: `<svg ${common}><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7m4 4v5m4-5v5"/></svg>`,
         copy: `<svg ${common}><rect x="8" y="8" width="11" height="11" rx="2" stroke-width="1.8"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2"/></svg>`
       };
@@ -1987,28 +2293,15 @@
     // ================================================================
     // UTILITAS UI
     // ================================================================
-    function setSubmittingState(loading) {
-      isSubmitting = loading;
+    function setSubmittingState(_loading) {
+      // Revisi 015: pengiriman tidak pernah mengunci composer/tombol.
+      // Status proses ditampilkan pada masing-masing kiriman optimistik.
       const btnText = document.getElementById("btn-send-text");
       const btnIcon = document.getElementById("btn-send-icon");
       const btnSpinner = document.getElementById("btn-send-spinner");
-      const btnSend = document.getElementById("btn-send");
-
-      if (loading) {
-        btnText.textContent = "Mengirim...";
-        btnIcon.classList.add("hidden");
-        btnSpinner.classList.remove("hidden");
-        btnSend.disabled = true;
-        btnSend.classList.add("opacity-75", "cursor-not-allowed");
-      } else {
-        btnText.textContent = "Kirim";
-        btnIcon.classList.remove("hidden");
-        btnSpinner.classList.add("hidden");
-        const canSend = !!accountState.active && !!selectedRoomAccess.authorized;
-        btnSend.disabled = !canSend;
-        btnSend.classList.toggle("opacity-75", !canSend);
-        btnSend.classList.toggle("cursor-not-allowed", !canSend);
-      }
+      if (btnText) btnText.textContent = "Kirim";
+      if (btnIcon) btnIcon.classList.remove("hidden");
+      if (btnSpinner) btnSpinner.classList.add("hidden");
     }
 
     function isValidURL(value) {
