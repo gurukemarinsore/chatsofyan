@@ -1,24 +1,34 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ChatSofyan - Berbagi Teks, Link & File Sementara</title>
   <link rel="icon" type="image/svg+xml" href="https://raw.githubusercontent.com/gurukemarinsore/chatsofyan/main/icon.svg?v=004">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+          },
           colors: {
             brand: {
-              50: '#eef2ff',
-              100: '#e0e7ff',
-              500: '#6366f1',
-              600: '#4f46e5',
-              700: '#4338ca',
-              900: '#312e81',
+              50: '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              400: '#60a5fa',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              900: '#1e3a8a',
             }
           }
         }
@@ -38,16 +48,26 @@
       background: transparent;
     }
     .scrollbar-thin::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
+      background: rgba(148, 163, 184, 0.45);
       border-radius: 9999px;
     }
+    .dark .scrollbar-thin::-webkit-scrollbar-thumb {
+      background: rgba(100, 116, 139, 0.45);
+    }
     @keyframes pulse-ring {
-      0% { transform: scale(0.95); opacity: 0.8; }
-      50% { transform: scale(1.2); opacity: 0.3; }
-      100% { transform: scale(0.95); opacity: 0.8; }
+      0% { transform: scale(0.92); opacity: 0.85; }
+      50% { transform: scale(1.25); opacity: 0.3; }
+      100% { transform: scale(0.92); opacity: 0.85; }
     }
     .pulse-indicator {
       animation: pulse-ring 2s infinite ease-in-out;
+    }
+    @keyframes bubbleIn {
+      from { opacity: 0; transform: translateY(8px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .msg-enter {
+      animation: bubbleIn 0.2s cubic-bezier(0.22, 1, 0.36, 1);
     }
     :root {
       --app-height: 100dvh;
@@ -58,6 +78,20 @@
     }
     body {
       min-height: var(--app-height, 100dvh);
+    }
+
+    /* Latar Login Solid Kekinian (100% Opaque agar tidak bisa diintip) */
+    .login-opaque-bg {
+      background-color: #f1f5f9;
+      background-image:
+        radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.14) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(124, 58, 237, 0.14) 0px, transparent 50%);
+    }
+    .dark .login-opaque-bg {
+      background-color: #020617;
+      background-image:
+        radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.22) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(124, 58, 237, 0.2) 0px, transparent 50%);
     }
 
     /* Revisi 017: string sangat panjang (token/hash/Base64/URL) tidak boleh
@@ -76,54 +110,133 @@
       max-width: 100%;
       overflow-x: hidden;
     }
+
+    /* Revisi 019: header dua baris khusus HP, tanpa mengubah susunan desktop. */
+    @media (max-width: 767px) {
+      #app-header-inner {
+        flex-wrap: wrap;
+        row-gap: 9px;
+      }
+      #app-header-brand {
+        width: 100%;
+        flex: 1 1 100%;
+      }
+      #app-header-brand-text {
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+      #app-header-actions {
+        width: 100%;
+        min-width: 0;
+        flex: 1 1 100%;
+        justify-content: space-between;
+      }
+      #app-account-pill {
+        min-width: 0;
+        flex: 1 1 auto;
+      }
+      #app-account-name-wrap {
+        min-width: 0;
+        flex: 1 1 auto;
+      }
+      #app-account-name-row {
+        min-width: 0;
+        width: 100%;
+      }
+      #device-name-input {
+        width: 100%;
+        min-width: 0;
+        text-overflow: ellipsis;
+      }
+      #btn-theme-toggle,
+      #btn-logout {
+        flex-shrink: 0;
+      }
+      #room-header {
+        gap: 8px;
+      }
+      #room-header > div:first-child {
+        min-width: 0;
+        flex: 1 1 auto;
+      }
+      #room-header > div:last-child {
+        min-width: 0;
+        flex: 0 1 auto;
+      }
+      #owner-pin-controls {
+        min-width: 0;
+      }
+      #owner-pin-controls > div {
+        padding-left: 8px;
+        padding-right: 8px;
+      }
+      #btn-change-room-pin,
+      #btn-clear-current-room {
+        padding-left: 8px;
+        padding-right: 8px;
+      }
+    }
+    @media (max-width: 359px) {
+      #room-header {
+        padding-left: 9px;
+        padding-right: 9px;
+        flex-wrap: wrap;
+      }
+      #room-header > div:first-child {
+        gap: 6px;
+        flex: 1 1 100%;
+      }
+      #room-header > div:last-child {
+        gap: 3px;
+        flex: 0 1 100%;
+        justify-content: flex-end;
+      }
+      #owner-pin-controls {
+        gap: 3px;
+      }
+    }
   </style>
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
 </head>
-<body class="bg-slate-100 text-slate-800 font-sans antialiased flex flex-col overflow-hidden select-none">
+<body class="bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans antialiased flex flex-col overflow-hidden select-none transition-colors duration-200">
 
   <!-- ==================== 1. BILAH ATAS (HEADER) ==================== -->
-  <header class="bg-white border-b border-slate-200 px-4 py-2.5 z-30 flex-shrink-0 shadow-sm">
-    <div class="w-full flex items-center justify-between gap-3">
+  <header class="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800/80 px-3 sm:px-5 py-2.5 z-30 flex-shrink-0">
+    <div id="app-header-inner" class="w-full flex items-center justify-between gap-2 sm:gap-3">
       
       <!-- Identitas Aplikasi -->
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center text-white shadow-md shadow-brand-500/20 flex-shrink-0">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-          </svg>
-        </div>
-        <div>
+      <div id="app-header-brand" class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/25 flex-shrink-0"><i data-lucide="message-circle-more" class="w-5 h-5" aria-hidden="true"></i></div>
+        <div id="app-header-brand-text" class="min-w-0">
           <div class="flex items-center gap-2">
-            <h1 class="font-bold text-slate-800 text-sm md:text-base leading-tight">ChatSofyan</h1>
-            <span id="badge-mode" class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+            <h1 class="font-extrabold tracking-tight text-slate-900 dark:text-white text-sm sm:text-base leading-tight">ChatSofyan</h1>
+            <span id="badge-mode" class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/70">
               Online
             </span>
           </div>
-          <div class="flex items-center gap-1.5 text-[11px] text-slate-500">
-            <span id="sync-dot" class="w-2 h-2 rounded-full bg-emerald-500 inline-block pulse-indicator"></span>
-            <span id="sync-text">Menyiapkan aplikasi...</span>
+          <div class="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+            <span id="sync-dot" class="w-2 h-2 rounded-full bg-emerald-500 inline-block pulse-indicator flex-shrink-0"></span>
+            <span id="sync-text" class="truncate">Menyiapkan aplikasi...</span>
           </div>
         </div>
       </div>
 
-      <!-- Identitas akun sementara 12 jam -->
-      <div class="flex items-center gap-2">
-        <div class="flex items-center bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 gap-2">
-          <div class="w-8 h-8 rounded-full bg-slate-200 border border-slate-300 flex items-center justify-center flex-shrink-0 overflow-hidden" title="Akun sementara">
-            <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 7a3 3 0 11-6 0 3 3 0 016 0ZM5.5 20a6.5 6.5 0 0113 0"/>
-            </svg>
-          </div>
-          <div class="flex flex-col">
-            <span class="text-[9px] text-slate-400 font-semibold leading-none">Akun aktif:</span>
-            <div class="flex items-center gap-2 mt-0.5">
-              <input type="text" id="device-name-input" class="bg-transparent text-xs font-bold text-brand-700 outline-none w-20 sm:w-32 cursor-default" title="Username akun" placeholder="Belum masuk" readonly />
-              <span id="account-time-left" class="hidden sm:inline text-[9px] font-semibold text-slate-400 whitespace-nowrap">Belum masuk</span>
+      <!-- Identitas akun sementara 12 jam & Tema -->
+      <div id="app-header-actions" class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+        <button id="btn-theme-toggle" type="button" class="p-2 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition" title="Ganti tema terang / gelap" aria-label="Ganti tema"><i data-lucide="sun" class="w-4 h-4 hidden dark:block" aria-hidden="true"></i><i data-lucide="moon" class="w-4 h-4 block dark:hidden" aria-hidden="true"></i></button>
+
+        <div id="app-account-pill" class="flex items-center bg-slate-100 dark:bg-slate-800/90 rounded-full pl-1.5 pr-3 py-1 gap-2 border border-slate-200/70 dark:border-slate-700/70">
+          <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-blue-600 to-violet-600 text-white flex items-center justify-center flex-shrink-0" title="Akun sementara"><i data-lucide="circle-user-round" class="w-4 h-4" aria-hidden="true"></i></div>
+          <div id="app-account-name-wrap" class="flex flex-col">
+            <div id="app-account-name-row" class="flex items-center gap-2">
+              <input type="text" id="device-name-input" class="bg-transparent text-xs font-bold text-slate-900 dark:text-white outline-none w-20 sm:w-28 cursor-default leading-tight" title="Username akun" placeholder="Belum masuk" readonly />
+              <span id="account-time-left" class="hidden sm:inline text-[10px] font-mono font-semibold text-slate-400 whitespace-nowrap">Belum masuk</span>
             </div>
           </div>
         </div>
-        <button id="btn-logout" type="button" class="hidden items-center gap-1.5 px-2.5 py-2 text-xs font-semibold text-slate-600 hover:text-rose-700 hover:bg-rose-50 border border-slate-200 rounded-lg transition" title="Keluar dari akun pada browser ini">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M10 5H6a2 2 0 00-2 2v10a2 2 0 002 2h4m5-4 4-4-4-4m4 4H9"/></svg>
-          <span class="hidden sm:inline">Keluar</span>
+
+        <button id="btn-logout" type="button" class="hidden items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/60 rounded-full transition" title="Keluar dari akun pada browser ini"><i data-lucide="log-out" class="w-4 h-4" aria-hidden="true"></i>
+          <span class="hidden md:inline">Keluar</span>
         </button>
       </div>
 
@@ -134,150 +247,123 @@
   <div class="flex-1 flex w-full overflow-hidden">
     
     <!-- ================= PANEL KIRI: DAFTAR KAMAR / LACI ================= -->
-    <aside id="rooms-sidebar" class="w-full md:w-80 lg:w-96 bg-white border-r border-slate-200 flex flex-col flex-shrink-0 transition-all duration-300">
+    <aside id="rooms-sidebar" class="w-full md:w-80 lg:w-96 bg-white dark:bg-slate-900 border-r border-slate-200/80 dark:border-slate-800/80 flex flex-col flex-shrink-0 transition-all duration-300">
       
       <!-- Header Pencarian / Filter Kamar -->
-      <div class="p-3 border-b border-slate-100 bg-slate-50/50 flex flex-col gap-2">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-1.5">
-            <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Ruang Berbagi</span>
-            <span id="total-rooms-badge" class="px-1.5 py-0.2 bg-brand-100 text-brand-700 font-bold text-[10px] rounded-full">0</span>
+      <div class="p-3.5 pb-2.5 flex flex-col gap-2.5">
+        <div class="flex items-center justify-between px-1">
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white">Obrolan</span>
+            <span id="total-rooms-badge" class="px-2 py-0.5 bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 font-bold text-[10px] rounded-full">0</span>
           </div>
-</div>
+        </div>
         
         <!-- Input Cari Kamar -->
         <div class="relative">
-          <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
+          <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5" aria-hidden="true"></i>
           <input 
             type="text" 
             id="search-room-input" 
             placeholder="Cari ruang atau pengirim..."
-            class="w-full pl-9 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-brand-500/30 transition"
+            class="w-full pl-9 pr-4 py-2 text-xs bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder-slate-400 rounded-full outline-none focus:ring-2 focus:ring-blue-500/30 transition"
           />
         </div>
       </div>
 
       <!-- Info Aturan 10 Menit Ringkas -->
-      <div class="bg-indigo-50/70 px-3 py-1.5 border-b border-indigo-100 flex items-center gap-1.5 text-[11px] text-indigo-900">
-        <svg class="w-3.5 h-3.5 text-indigo-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <span>Semua kiriman terhapus otomatis setelah 10 menit.</span>
+      <div class="mx-3.5 mb-2 px-3 py-1.5 rounded-xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/40 flex items-center gap-2 text-[11px] text-blue-800 dark:text-blue-200">
+        <i data-lucide="timer" class="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 flex-shrink-0" aria-hidden="true"></i>
+        <span>Kiriman terhapus otomatis setelah 10 menit.</span>
       </div>
 
       <!-- Daftar Laci Pengirim (Scrollable) -->
-      <div id="rooms-list" class="flex-1 overflow-y-auto p-2 space-y-1.5 scrollbar-thin">
+      <div id="rooms-list" class="flex-1 overflow-y-auto px-2.5 pb-3 space-y-1 scrollbar-thin">
         <!-- Render Kamar via JS -->
       </div>
 
     </aside>
 
     <!-- ================= PANEL KANAN: ISI KAMAR TERPILIH ================= -->
-    <section id="room-content-pane" class="hidden md:flex flex-1 flex-col bg-slate-100 overflow-hidden relative">
+    <section id="room-content-pane" class="hidden md:flex flex-1 flex-col bg-white dark:bg-slate-950 overflow-hidden relative">
 
       <!-- Overlay drag & drop file -->
-      <div id="drop-overlay" class="hidden absolute inset-0 z-50 bg-indigo-50/95 backdrop-blur-[2px] border-2 border-dashed border-indigo-400 items-center justify-center pointer-events-none">
+      <div id="drop-overlay" class="hidden absolute inset-0 z-50 bg-blue-50/95 dark:bg-slate-900/95 backdrop-blur-sm border-2 border-dashed border-blue-500 items-center justify-center pointer-events-none">
         <div class="text-center px-6">
-          <div class="w-16 h-16 mx-auto rounded-2xl bg-white border border-indigo-200 text-indigo-600 flex items-center justify-center shadow-sm mb-3">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 16V4m0 0-4 4m4-4 4 4M5 14v4a2 2 0 002 2h10a2 2 0 002-2v-4"/>
-            </svg>
-          </div>
-          <p class="text-sm font-bold text-indigo-950">Lepaskan file di sini</p>
-          <p class="text-xs text-indigo-700 mt-1">File akan dilampirkan dan belum dikirim sampai Anda menekan Kirim.</p>
+          <div class="w-16 h-16 mx-auto rounded-full bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-lg mb-3"><i data-lucide="cloud-upload" class="w-8 h-8" aria-hidden="true"></i></div>
+          <p class="text-sm font-bold text-slate-900 dark:text-white">Lepaskan file di sini</p>
+          <p class="text-xs text-slate-600 dark:text-slate-300 mt-1">File akan dilampirkan dan belum dikirim sampai Anda menekan Kirim.</p>
         </div>
       </div>
       
       <!-- Header Kamar Terpilih -->
-      <div id="room-header" class="bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between shadow-xs z-10">
-        <div class="flex items-center gap-3">
+      <div id="room-header" class="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800/80 px-4 py-2.5 flex items-center justify-between z-10 shadow-xs">
+        <div class="flex items-center gap-3 min-w-0">
           
           <!-- Tombol Kembali (Mobile Only) -->
-          <button id="btn-back-to-rooms" class="md:hidden p-1.5 -ml-1 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
+          <button id="btn-back-to-rooms" class="md:hidden p-2 -ml-1 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-full transition"><i data-lucide="chevron-left" class="w-5 h-5" aria-hidden="true"></i></button>
 
           <!-- Avatar & Nama Kamar -->
-          <div class="w-10 h-10 rounded-xl bg-brand-600 text-white font-bold flex items-center justify-center text-base shadow-sm flex-shrink-0" id="current-room-avatar">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-violet-500 text-white font-bold flex items-center justify-center text-base shadow-md shadow-blue-500/20 flex-shrink-0" id="current-room-avatar">
             P
           </div>
-          <div>
+          <div class="min-w-0">
             <div class="flex items-center gap-2">
-              <h2 id="current-room-name" class="font-bold text-slate-800 text-sm md:text-base">Ruang</h2>
-              <span id="current-room-badge" class="hidden text-[10px] bg-brand-50 text-brand-700 font-bold px-2 py-0.5 rounded-md border border-brand-200">Ruang Anda</span>
+              <h2 id="current-room-name" class="font-bold text-slate-900 dark:text-white text-sm md:text-base truncate">Ruang</h2>
+              <span id="current-room-badge" class="hidden text-[10px] bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 font-bold px-2 py-0.5 rounded-full border border-blue-200/80 dark:border-blue-800/60 flex-shrink-0">Ruang Anda</span>
             </div>
-            <p id="current-room-stats" class="text-xs text-slate-500">0 kiriman</p>
+            <p id="current-room-stats" class="text-[11px] text-slate-500 dark:text-slate-400 truncate">0 kiriman</p>
           </div>
         </div>
 
         <!-- Aksi Cepat Kamar -->
-        <div class="flex items-center gap-1.5 sm:gap-2">
+        <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
           <!-- Kontrol PIN hanya muncul jika ruang benar-benar dimiliki browser/perangkat ini -->
           <div id="owner-pin-controls" class="hidden items-center gap-1.5">
-            <div class="flex items-center gap-1 bg-indigo-50 border border-indigo-200 rounded-lg px-2 py-1.5 text-[10px] sm:text-xs text-indigo-800" title="PIN universal ruang Anda">
+            <div class="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 rounded-full px-3 py-1.5 text-[10px] sm:text-xs text-slate-700 dark:text-slate-200" title="PIN universal ruang Anda">
               <span class="font-semibold hidden sm:inline">PIN</span>
               <span id="owner-pin-display" class="font-mono font-bold tracking-wider">••••••</span>
-              <button id="btn-toggle-owner-pin" type="button" class="p-0.5 rounded hover:bg-indigo-100 transition" title="Lihat / sembunyikan PIN"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5" stroke-width="1.8"/></svg></button>
+              <button id="btn-toggle-owner-pin" type="button" class="p-0.5 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition" title="Lihat / sembunyikan PIN"><i data-lucide="eye" class="w-3.5 h-3.5" aria-hidden="true"></i></button>
             </div>
-            <button id="btn-change-room-pin" type="button" class="px-2 py-1.5 text-[10px] sm:text-xs text-indigo-700 hover:bg-indigo-50 border border-indigo-200 rounded-lg font-semibold transition">Ganti</button>
+            <button id="btn-change-room-pin" type="button" class="px-3 py-1.5 text-[10px] sm:text-xs text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 bg-slate-100 dark:bg-slate-800 rounded-full font-semibold transition">Ganti</button>
           </div>
 
           <button 
             id="btn-clear-current-room" 
-            class="px-2.5 py-1.5 text-xs text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-lg font-medium transition flex items-center gap-1" 
-            title="Hapus semua kiriman di ruang ini">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
+            class="px-3 py-1.5 text-xs text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 bg-slate-100 dark:bg-slate-800 rounded-full font-semibold transition flex items-center gap-1.5" 
+            title="Hapus semua kiriman di ruang ini"><i data-lucide="trash-2" class="w-3.5 h-3.5" aria-hidden="true"></i>
             <span class="hidden sm:inline">Hapus Semua</span>
           </button>
         </div>
       </div>
 
-      <!-- Area Pesan di Dalam Kamar Terpilih (Feed) -->
-      <div id="messages-scroll-area" class="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin">
-        <div id="room-messages-container" class="w-full space-y-3">
+      <!-- Area Pesan di Dalam Kamar Terpilih (Feed Messenger) -->
+      <div id="messages-scroll-area" class="flex-1 overflow-y-auto px-3 sm:px-6 py-4 space-y-3 scrollbar-thin bg-white dark:bg-slate-950">
+        <div id="room-messages-container" class="w-full max-w-4xl mx-auto flex flex-col gap-3">
           <!-- Pesan di kamar aktif akan dirender di sini -->
         </div>
 
         <!-- Tampilan Kosong Kamar (Empty Room State) -->
         <div id="empty-room-state" class="hidden h-full flex flex-col items-center justify-center text-center p-6">
-          <div class="w-16 h-16 bg-slate-200/80 rounded-2xl flex items-center justify-center text-slate-400 mb-3 shadow-inner">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-            </svg>
-          </div>
-          <h3 class="text-sm font-bold text-slate-700">Belum Ada Kiriman</h3>
-          <p class="text-xs text-slate-500 max-w-xs mt-1">Kirim teks, link, atau file melalui kolom di bawah.</p>
+          <div class="w-16 h-16 bg-gradient-to-tr from-blue-500/15 to-violet-500/15 dark:from-blue-500/25 dark:to-violet-500/25 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400 mb-3.5"><i data-lucide="message-circle-more" class="w-8 h-8" aria-hidden="true"></i></div>
+          <h3 class="text-sm font-bold text-slate-900 dark:text-white">Mulai Percakapan</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 max-w-xs mt-1 leading-relaxed">Kirim pesan, tautan, atau seret file ke sini melalui kolom di bawah.</p>
         </div>
       </div>
 
-      <!-- ================= BILAH BAWAH (INPUT PENGIRIMAN KE KAMAR) ================= -->
-      <div class="bg-white border-t border-slate-200 p-3 flex-shrink-0">
-        <div class="w-full">
+      <!-- ================= BILAH BAWAH (INPUT PENGIRIMAN GAYA MESSENGER) ================= -->
+      <div class="bg-white dark:bg-slate-900 border-t border-slate-200/80 dark:border-slate-800/80 px-3 sm:px-5 py-2.5 flex-shrink-0">
+        <div class="w-full max-w-4xl mx-auto">
           
           <!-- Pratinjau Berkas Lampiran -->
-          <div id="file-preview-bar" class="hidden mb-2 bg-indigo-50 border border-indigo-200 rounded-xl p-2 flex items-center justify-between">
-            <div class="flex items-center gap-2 overflow-hidden">
-              <div class="p-1 bg-indigo-600 text-white rounded-md">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                </svg>
-              </div>
+          <div id="file-preview-bar" class="hidden mb-2 bg-blue-50 dark:bg-blue-950/60 border border-blue-200/80 dark:border-blue-800/60 rounded-2xl p-2.5 flex items-center justify-between">
+            <div class="flex items-center gap-2.5 overflow-hidden">
+              <div class="p-1.5 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-xl shadow-sm"><i data-lucide="paperclip" class="w-3.5 h-3.5" aria-hidden="true"></i></div>
               <div class="truncate">
-                <p id="file-preview-name" class="text-xs font-bold text-indigo-950 truncate">file.pdf</p>
-                <p id="file-preview-size" class="text-[10px] text-indigo-700">0 KB</p>
+                <p id="file-preview-name" class="text-xs font-bold text-blue-950 dark:text-blue-100 truncate">file.pdf</p>
+                <p id="file-preview-size" class="text-[10px] text-blue-700 dark:text-blue-300">0 KB</p>
               </div>
             </div>
-            <button id="btn-cancel-file" class="p-1 text-slate-400 hover:text-rose-600 transition" title="Batalkan">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+            <button id="btn-cancel-file" class="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-full hover:bg-white/70 dark:hover:bg-slate-800 transition" title="Batalkan"><i data-lucide="x" class="w-4 h-4" aria-hidden="true"></i></button>
           </div>
 
           <!-- Form Input Pengiriman -->
@@ -289,32 +375,25 @@
               type="button" 
               id="btn-attach-file"
               onclick="document.getElementById('file-input').click()"
-              class="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition flex-shrink-0"
-              title="Lampirkan File (Maks. 10 MB)">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-              </svg>
-            </button>
+              class="p-2.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-full transition flex-shrink-0"
+              title="Lampirkan File (Maks. 10 MB)"><i data-lucide="paperclip" class="w-5 h-5" aria-hidden="true"></i></button>
 
             <!-- Tombol Tempel Clipboard Cepat -->
             <button 
               type="button" 
               id="btn-paste-clipboard" 
-              class="hidden sm:flex items-center gap-1 px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-medium transition flex-shrink-0"
-              title="Tempel teks yang sudah disalin">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
+              class="hidden sm:flex items-center gap-1.5 px-3 py-2 text-blue-600 dark:text-blue-400 bg-blue-50/80 dark:bg-slate-800 hover:bg-blue-100 dark:hover:bg-slate-700 rounded-full text-xs font-semibold transition flex-shrink-0 self-center"
+              title="Tempel teks yang sudah disalin"><i data-lucide="clipboard-paste" class="w-4 h-4" aria-hidden="true"></i>
               <span>Tempel</span>
             </button>
 
-            <!-- Kolom Input Teks/URL: auto-grow 1–6 baris -->
-            <div class="relative flex-1">
+            <!-- Kolom Input Teks/URL: pill auto-grow 1–6 baris -->
+            <div class="relative flex-1 min-w-0 bg-slate-100 dark:bg-slate-800 rounded-[22px] px-3.5 py-1.5 border border-transparent focus-within:border-blue-500/60 focus-within:bg-white dark:focus-within:bg-slate-800 focus-within:ring-2 focus-within:ring-blue-500/20 transition">
               <textarea
                 id="message-input"
                 rows="1"
-                placeholder="Tulis pesan atau tempel link..."
-                class="w-full bg-slate-100 text-slate-800 placeholder-slate-400 text-xs sm:text-sm rounded-xl px-3.5 py-2.5 border border-transparent focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition resize-none overflow-y-hidden leading-5 block"
+                placeholder="Aa"
+                class="w-full bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-xs sm:text-sm py-1 border-0 focus:outline-none resize-none overflow-y-hidden leading-5 block"
                 autocomplete="off"
                 aria-label="Tulis pesan"
               ></textarea>
@@ -324,15 +403,9 @@
             <button 
               type="submit" 
               id="btn-send" 
-              class="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs sm:text-sm font-bold rounded-xl shadow-md shadow-brand-500/20 transition flex items-center justify-center gap-1.5 flex-shrink-0">
-              <span id="btn-send-text">Kirim</span>
-              <svg id="btn-send-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-              </svg>
-              <svg id="btn-send-spinner" class="w-4 h-4 animate-spin hidden" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
+              class="px-4 py-2.5 bg-gradient-to-tr from-blue-600 via-indigo-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 text-white text-xs sm:text-sm font-bold rounded-full shadow-md shadow-blue-500/25 transition flex items-center justify-center gap-1.5 flex-shrink-0">
+              <span id="btn-send-text" class="hidden sm:inline">Kirim</span>
+              <span id="btn-send-icon" class="inline-flex"><i data-lucide="send-horizontal" class="w-4 h-4" aria-hidden="true"></i></span><span id="btn-send-spinner" class="hidden"><i data-lucide="loader-circle" class="w-4 h-4 animate-spin" aria-hidden="true"></i></span>
             </button>
           </form>
 
@@ -343,62 +416,82 @@
 
   </div>
 
+  <!-- ==================== HALAMAN LOGIN PENUH & SOLID (ANTI-INTIP) ==================== -->
+  <div id="account-modal" class="hidden fixed inset-0 z-[80] login-opaque-bg items-center justify-center p-4 overflow-y-auto">
+    <div class="w-full max-w-4xl bg-white dark:bg-slate-900 rounded-[28px] shadow-2xl border border-slate-200/90 dark:border-slate-800 overflow-hidden grid grid-cols-1 md:grid-cols-12 my-auto">
+      
+      <!-- Panel Showcase Kiri (Solid Gradient) -->
+      <div class="md:col-span-5 bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 text-white p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden">
+        <div class="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-white/10 blur-2xl pointer-events-none"></div>
+        <div class="absolute -bottom-16 -left-16 w-48 h-48 rounded-full bg-sky-300/15 blur-2xl pointer-events-none"></div>
 
-
-  <!-- ==================== MODAL LOGIN / AKUN SEMENTARA 12 JAM ==================== -->
-  <div id="account-modal" class="hidden fixed inset-0 z-[80] bg-slate-950/60 backdrop-blur-sm items-center justify-center p-4">
-    <div class="w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
-      <div class="px-5 pt-5 pb-3">
-        <div class="w-11 h-11 rounded-xl bg-brand-100 text-brand-700 flex items-center justify-center mb-3">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 7a3 3 0 11-6 0 3 3 0 016 0ZM5.5 20a6.5 6.5 0 0113 0"/></svg>
+        <div class="relative z-10">
+          <div class="w-12 h-12 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center shadow-lg mb-5"><i data-lucide="message-circle-more" class="w-6 h-6 text-white" aria-hidden="true"></i></div>
+          <h2 class="text-2xl font-extrabold tracking-tight leading-snug">ChatSofyan</h2>
+          <p class="text-xs sm:text-sm text-blue-100 mt-2 leading-relaxed">Kirim teks, tautan, dan file lintas perangkat secara cepat tanpa ribet.</p>
         </div>
-        <h3 id="account-modal-title" class="text-base font-bold text-slate-900">Masuk ke ChatSofyan</h3>
-        <p id="account-modal-description" class="text-xs text-slate-500 mt-1 leading-relaxed">Masuk menggunakan username dan PIN akun yang masih aktif.</p>
+
+        <div class="relative z-10 mt-6 md:mt-8 space-y-2.5 text-xs">
+          <div class="flex items-center gap-2.5 bg-white/10 border border-white/15 rounded-2xl px-3.5 py-2.5"><i data-lucide="timer" class="w-4 h-4 text-sky-200 flex-shrink-0" aria-hidden="true"></i><span class="font-medium text-white/95">Otomatis terhapus dalam 10 menit</span>
+          </div>
+          <div class="flex items-center gap-2.5 bg-white/10 border border-white/15 rounded-2xl px-3.5 py-2.5"><i data-lucide="lock" class="w-4 h-4 text-sky-200 flex-shrink-0" aria-hidden="true"></i><span class="font-medium text-white/95">Ruang pribadi dilindungi PIN 6 digit</span>
+          </div>
+          <div class="hidden sm:flex items-center gap-2.5 bg-white/10 border border-white/15 rounded-2xl px-3.5 py-2.5"><i data-lucide="shield-check" class="w-4 h-4 text-sky-200 flex-shrink-0" aria-hidden="true"></i><span class="font-medium text-white/95">Akun sementara aktif selama 12 jam</span>
+          </div>
+        </div>
       </div>
 
-      <div class="px-5 pb-3">
-        <div class="grid grid-cols-2 gap-1 p-1 bg-slate-100 rounded-xl">
-          <button id="btn-account-mode-login" type="button" class="px-3 py-2 text-xs font-bold rounded-lg bg-white text-brand-700 shadow-sm">Masuk</button>
-          <button id="btn-account-mode-create" type="button" class="px-3 py-2 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800">Buat Akun</button>
-        </div>
-      </div>
-
-      <form id="account-form" class="px-5 pb-5 space-y-3">
-        <div>
-          <label class="block text-[11px] font-semibold text-slate-600 mb-1.5" for="account-username-input">Username</label>
-          <input id="account-username-input" type="text" maxlength="80" autocomplete="username" class="w-full border border-slate-300 rounded-xl px-3.5 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500" placeholder="Contoh: budi" />
-          <p id="account-username-help" class="text-[10px] text-slate-400 mt-1">Masukkan username akun Anda.</p>
+      <!-- Panel Form Kanan (Solid White / Dark Slate) -->
+      <div class="md:col-span-7 p-6 sm:p-8 flex flex-col justify-center bg-white dark:bg-slate-900">
+        <div class="flex items-start justify-between gap-3 mb-5">
+          <div>
+            <h3 id="account-modal-title" class="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">Masuk ke ChatSofyan</h3>
+            <p id="account-modal-description" class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">Masuk menggunakan username dan PIN akun yang masih aktif.</p>
+          </div>
+          <button id="btn-login-theme-toggle" type="button" class="p-2 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition flex-shrink-0" title="Ganti tema terang / gelap"><i data-lucide="sun" class="w-4 h-4 hidden dark:block" aria-hidden="true"></i><i data-lucide="moon" class="w-4 h-4 block dark:hidden" aria-hidden="true"></i></button>
         </div>
 
-        <div>
-          <label class="block text-[11px] font-semibold text-slate-600 mb-1.5" for="account-pin-input">PIN 6 digit</label>
-          <div class="relative">
-            <input id="account-pin-input" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="current-password" class="w-full border border-slate-300 rounded-xl px-3.5 py-3 pr-12 text-center font-mono font-bold tracking-[0.35em] text-lg outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500" placeholder="••••••" />
-            <button id="btn-toggle-account-pin" type="button" class="absolute right-2.5 top-1/2 -translate-y-1/2 p-2 text-slate-500 hover:text-brand-700 rounded-lg hover:bg-brand-50" title="Lihat / sembunyikan PIN"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5" stroke-width="1.8"/></svg></button>
+        <div class="mb-5">
+          <div class="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl">
+            <button id="btn-account-mode-login" type="button" class="px-3 py-2.5 text-xs font-bold rounded-xl bg-white dark:bg-slate-700 text-blue-600 dark:text-white shadow-sm transition">Masuk</button>
+            <button id="btn-account-mode-create" type="button" class="px-3 py-2.5 text-xs font-bold rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition">Buat Akun</button>
           </div>
         </div>
 
-        <p id="account-form-error" class="hidden text-xs text-rose-600"></p>
-        <button id="btn-account-submit" type="submit" class="w-full px-4 py-2.5 text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-xl shadow-sm transition">Masuk</button>
-      </form>
+        <form id="account-form" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5" for="account-username-input">Username</label>
+            <input id="account-username-input" type="text" maxlength="80" autocomplete="username" class="w-full bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition" placeholder="Contoh: budi" />
+            <p id="account-username-help" class="text-[11px] text-slate-400 mt-1.5">Masukkan username akun Anda.</p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5" for="account-pin-input">PIN 6 digit</label>
+            <div class="relative">
+              <input id="account-pin-input" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="current-password" class="w-full bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 pr-12 text-center font-mono font-bold tracking-[0.35em] text-lg outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition" placeholder="••••••" />
+              <button id="btn-toggle-account-pin" type="button" class="absolute right-2.5 top-1/2 -translate-y-1/2 p-2 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-300 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition" title="Lihat / sembunyikan PIN"><i data-lucide="eye" class="w-4 h-4" aria-hidden="true"></i></button>
+            </div>
+          </div>
+
+          <p id="account-form-error" class="hidden text-xs text-rose-600 dark:text-rose-400 font-medium"></p>
+          <button id="btn-account-submit" type="submit" class="w-full px-4 py-3.5 text-sm font-bold text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 rounded-2xl shadow-lg shadow-blue-500/25 transition">Masuk</button>
+        </form>
+      </div>
+
     </div>
   </div>
 
   <!-- ==================== MODAL PIN RUANG ==================== -->
-  <div id="pin-modal" class="hidden fixed inset-0 z-[70] bg-slate-950/55 backdrop-blur-sm items-center justify-center p-4">
-    <div class="w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
-      <div class="px-5 pt-5 pb-3">
-        <div class="w-11 h-11 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center mb-3">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-          </svg>
-        </div>
-        <h3 id="pin-modal-title" class="text-base font-bold text-slate-900">PIN Ruang</h3>
-        <p id="pin-modal-description" class="text-xs text-slate-500 mt-1 leading-relaxed">Masukkan PIN 6 digit.</p>
+  <div id="pin-modal" class="hidden fixed inset-0 z-[70] bg-slate-950/85 backdrop-blur-md items-center justify-center p-4">
+    <div class="w-full max-w-sm bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200/90 dark:border-slate-800 overflow-hidden">
+      <div class="px-6 pt-6 pb-3">
+        <div class="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-950/70 text-blue-600 dark:text-blue-300 flex items-center justify-center mb-3.5"><i data-lucide="lock" class="w-5 h-5" aria-hidden="true"></i></div>
+        <h3 id="pin-modal-title" class="text-base font-extrabold text-slate-900 dark:text-white">PIN Ruang</h3>
+        <p id="pin-modal-description" class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">Masukkan PIN 6 digit.</p>
       </div>
 
-      <form id="pin-modal-form" class="px-5 pb-5">
-        <label class="block text-[11px] font-semibold text-slate-600 mb-1.5" for="pin-modal-input">PIN 6 digit</label>
+      <form id="pin-modal-form" class="px-6 pb-6">
+        <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1.5" for="pin-modal-input">PIN 6 digit</label>
         <div class="relative">
           <input
             id="pin-modal-input"
@@ -407,25 +500,37 @@
             pattern="[0-9]*"
             maxlength="6"
             autocomplete="off"
-            class="w-full border border-slate-300 rounded-xl px-3.5 py-3 pr-12 text-center font-mono font-bold tracking-[0.35em] text-lg outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
+            class="w-full bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 rounded-2xl px-3.5 py-3 pr-12 text-center font-mono font-bold tracking-[0.35em] text-lg outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition"
             placeholder="••••••"
           />
-          <button id="btn-toggle-pin-modal" type="button" class="absolute right-2.5 top-1/2 -translate-y-1/2 p-2 text-slate-500 hover:text-indigo-700 rounded-lg hover:bg-indigo-50" title="Lihat / sembunyikan PIN"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5" stroke-width="1.8"/></svg></button>
+          <button id="btn-toggle-pin-modal" type="button" class="absolute right-2.5 top-1/2 -translate-y-1/2 p-2 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-300 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition" title="Lihat / sembunyikan PIN"><i data-lucide="eye" class="w-4 h-4" aria-hidden="true"></i></button>
         </div>
-        <p id="pin-modal-error" class="hidden text-xs text-rose-600 mt-2"></p>
+        <p id="pin-modal-error" class="hidden text-xs text-rose-600 dark:text-rose-400 mt-2"></p>
 
         <div class="flex items-center justify-end gap-2 mt-5">
-          <button id="btn-cancel-pin-modal" type="button" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition">Batal</button>
-          <button id="btn-submit-pin-modal" type="submit" class="px-4 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm transition">Buka Ruang</button>
+          <button id="btn-cancel-pin-modal" type="button" class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition">Batal</button>
+          <button id="btn-submit-pin-modal" type="submit" class="px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-xl shadow-sm transition">Buka Ruang</button>
         </div>
       </form>
     </div>
   </div>
 
+  <!-- ==================== MODAL KONFIRMASI IN-PAGE ==================== -->
+  <div id="confirm-modal" class="hidden fixed inset-0 z-[90] bg-slate-950/80 backdrop-blur-md items-center justify-center p-4">
+    <div class="w-full max-w-sm bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200/90 dark:border-slate-800 p-6">
+      <h3 id="confirm-modal-title" class="text-base font-extrabold text-slate-900 dark:text-white">Konfirmasi</h3>
+      <p id="confirm-modal-message" class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed"></p>
+      <div class="flex items-center justify-end gap-2 mt-5">
+        <button id="btn-confirm-cancel" type="button" class="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition">Batal</button>
+        <button id="btn-confirm-ok" type="button" class="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-sm transition">Lanjutkan</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== 3. TOAST NOTIFIKASI ==================== -->
-  <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 transform -translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
-    <div class="bg-slate-900/95 backdrop-blur text-white text-xs md:text-sm px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 border border-slate-700">
-      <span id="toast-icon" class="inline-flex flex-shrink-0"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="1.8"/><path stroke-linecap="round" stroke-width="1.8" d="M12 10.5V16M12 7.5h.01"/></svg></span>
+  <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-[100] transform -translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+    <div class="bg-slate-900/95 dark:bg-slate-800/95 backdrop-blur-xl text-white text-xs md:text-sm px-4 py-2.5 rounded-full shadow-2xl flex items-center gap-2 border border-slate-700/80">
+      <span id="toast-icon" class="inline-flex flex-shrink-0"><i data-lucide="info" class="w-4 h-4" aria-hidden="true"></i></span>
       <span id="toast-message">Pesan notifikasi</span>
     </div>
   </div>
@@ -434,7 +539,8 @@
   <script>
     // ================================================================
     // ChatSofyan - Frontend GitHub Pages
-    // ChatSofyan Revisi 017 - GitHub Pages
+    // ChatSofyan Revisi 019 - Sinkronisasi Stabil & Header HP Responsif
+    // (Kode Penghubung GAS Tidak Diubah)
     // ================================================================
 
     const APP_CONFIG = Object.freeze({
@@ -499,12 +605,79 @@
     let dragDepth = 0;
     let forceScrollToBottom = false;
     let lastRenderedRoom = "";
+    let lastRoomsListMarkup = null;
+    let lastOwnerPinMarkupKey = null;
+    let renderedMessageSignatures = new Map();
 
+    const STORAGE_KEY_THEME = "chatsofyan_theme_v1";
     const STORAGE_KEY_ACCOUNT_USERNAME = "chatsofyan_account_username_v1";
     const STORAGE_KEY_ACCOUNT_SESSION_TOKEN = "chatsofyan_account_session_token_v2";
     const STORAGE_KEY_LEGACY_OWNER_TOKEN = "chatsofyan_account_owner_token_v1";
     const STORAGE_KEY_ACCOUNT_EXPIRES_AT = "chatsofyan_account_expires_at_v1";
     const STORAGE_KEY_ROOM_PIN_PREFIX = "chatsofyan_room_pin_v1:";
+
+    function safeStorageGet(key) {
+      try {
+        return localStorage.getItem(key);
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function safeStorageSet(key, value) {
+      try {
+        localStorage.setItem(key, value);
+      } catch (_) {}
+    }
+
+    function safeStorageRemove(key) {
+      try {
+        localStorage.removeItem(key);
+      } catch (_) {}
+    }
+
+    function initTheme() {
+      const saved = safeStorageGet(STORAGE_KEY_THEME);
+      const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const isDark = saved ? saved === "dark" : prefersDark;
+      document.documentElement.classList.toggle("dark", isDark);
+    }
+
+    function toggleTheme() {
+      const isDark = !document.documentElement.classList.contains("dark");
+      document.documentElement.classList.toggle("dark", isDark);
+      safeStorageSet(STORAGE_KEY_THEME, isDark ? "dark" : "light");
+    }
+
+    function showConfirmModal(title, message, confirmLabel = "Lanjutkan") {
+      return new Promise((resolve) => {
+        const modal = document.getElementById("confirm-modal");
+        const titleEl = document.getElementById("confirm-modal-title");
+        const msgEl = document.getElementById("confirm-modal-message");
+        const cancelBtn = document.getElementById("btn-confirm-cancel");
+        const okBtn = document.getElementById("btn-confirm-ok");
+
+        titleEl.textContent = title;
+        msgEl.textContent = message;
+        okBtn.textContent = confirmLabel;
+
+        const cleanup = (result) => {
+          modal.classList.add("hidden");
+          modal.classList.remove("flex");
+          cancelBtn.removeEventListener("click", onCancel);
+          okBtn.removeEventListener("click", onOk);
+          resolve(result);
+        };
+
+        const onCancel = () => cleanup(false);
+        const onOk = () => cleanup(true);
+
+        cancelBtn.addEventListener("click", onCancel);
+        okBtn.addEventListener("click", onOk);
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+      });
+    }
 
     function getSessionToken() {
       return accountState.active ? String(accountState.sessionToken || "") : "";
@@ -528,11 +701,11 @@
     }
 
     function getStoredRoomPin(room) {
-      return localStorage.getItem(roomPinStorageKey(room)) || "";
+      return safeStorageGet(roomPinStorageKey(room)) || "";
     }
 
     function storeRoomPin(room, pin) {
-      localStorage.setItem(roomPinStorageKey(room), String(pin || ""));
+      safeStorageSet(roomPinStorageKey(room), String(pin || ""));
     }
 
     function getRoomAccessToken(room) {
@@ -563,23 +736,23 @@
 
     function saveAccountState() {
       if (!accountState.active || !accountState.sessionToken) return;
-      localStorage.setItem(STORAGE_KEY_ACCOUNT_USERNAME, accountState.username);
-      localStorage.setItem(STORAGE_KEY_ACCOUNT_SESSION_TOKEN, accountState.sessionToken);
-      localStorage.setItem(STORAGE_KEY_ACCOUNT_EXPIRES_AT, accountState.expiresAt || "");
-      localStorage.removeItem(STORAGE_KEY_LEGACY_OWNER_TOKEN);
+      safeStorageSet(STORAGE_KEY_ACCOUNT_USERNAME, accountState.username);
+      safeStorageSet(STORAGE_KEY_ACCOUNT_SESSION_TOKEN, accountState.sessionToken);
+      safeStorageSet(STORAGE_KEY_ACCOUNT_EXPIRES_AT, accountState.expiresAt || "");
+      safeStorageRemove(STORAGE_KEY_LEGACY_OWNER_TOKEN);
     }
 
     function clearStoredSession() {
-      localStorage.removeItem(STORAGE_KEY_ACCOUNT_USERNAME);
-      localStorage.removeItem(STORAGE_KEY_ACCOUNT_SESSION_TOKEN);
-      localStorage.removeItem(STORAGE_KEY_ACCOUNT_EXPIRES_AT);
-      localStorage.removeItem(STORAGE_KEY_LEGACY_OWNER_TOKEN);
+      safeStorageRemove(STORAGE_KEY_ACCOUNT_USERNAME);
+      safeStorageRemove(STORAGE_KEY_ACCOUNT_SESSION_TOKEN);
+      safeStorageRemove(STORAGE_KEY_ACCOUNT_EXPIRES_AT);
+      safeStorageRemove(STORAGE_KEY_LEGACY_OWNER_TOKEN);
     }
 
     function loadStoredAccountState() {
-      const username = (localStorage.getItem(STORAGE_KEY_ACCOUNT_USERNAME) || "").trim();
-      const sessionToken = localStorage.getItem(STORAGE_KEY_ACCOUNT_SESSION_TOKEN) || "";
-      const expiresAt = localStorage.getItem(STORAGE_KEY_ACCOUNT_EXPIRES_AT) || "";
+      const username = (safeStorageGet(STORAGE_KEY_ACCOUNT_USERNAME) || "").trim();
+      const sessionToken = safeStorageGet(STORAGE_KEY_ACCOUNT_SESSION_TOKEN) || "";
+      const expiresAt = safeStorageGet(STORAGE_KEY_ACCOUNT_EXPIRES_AT) || "";
 
       if (username && sessionToken) {
         accountState = { active: true, username, sessionToken, expiresAt, status: "VERIFYING" };
@@ -601,7 +774,7 @@
         input.value = "";
         input.placeholder = "Belum masuk";
         timeLabel.textContent = "Belum masuk";
-        timeLabel.classList.remove("text-emerald-600");
+        timeLabel.classList.remove("text-emerald-600", "dark:text-emerald-400");
         timeLabel.classList.add("text-slate-400");
         logoutBtn?.classList.add("hidden");
         logoutBtn?.classList.remove("flex");
@@ -614,7 +787,7 @@
 
       if (accountState.status === "VERIFYING") {
         timeLabel.textContent = "Memverifikasi...";
-        timeLabel.classList.remove("text-emerald-600");
+        timeLabel.classList.remove("text-emerald-600", "dark:text-emerald-400");
         timeLabel.classList.add("text-slate-400");
         return;
       }
@@ -623,7 +796,7 @@
       const remaining = Number.isFinite(expiresMs) ? Math.max(0, Math.floor((expiresMs - serverNowMs()) / 1000)) : 0;
       timeLabel.textContent = `Sisa ${formatAccountDuration(remaining)}`;
       timeLabel.classList.remove("text-slate-400");
-      timeLabel.classList.add("text-emerald-600");
+      timeLabel.classList.add("text-emerald-600", "dark:text-emerald-400");
     }
 
     function formatAccountDuration(seconds) {
@@ -647,8 +820,8 @@
       document.getElementById("btn-account-submit").textContent = isCreate ? "Buat Akun 12 Jam" : "Masuk";
       const loginBtn = document.getElementById("btn-account-mode-login");
       const createBtn = document.getElementById("btn-account-mode-create");
-      loginBtn.className = `px-3 py-2 text-xs font-bold rounded-lg ${!isCreate ? "bg-white text-brand-700 shadow-sm" : "text-slate-500 hover:text-slate-800"}`;
-      createBtn.className = `px-3 py-2 text-xs font-bold rounded-lg ${isCreate ? "bg-white text-brand-700 shadow-sm" : "text-slate-500 hover:text-slate-800"}`;
+      loginBtn.className = `px-3 py-2.5 text-xs font-bold rounded-xl transition ${!isCreate ? "bg-white dark:bg-slate-700 text-blue-600 dark:text-white shadow-sm" : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"}`;
+      createBtn.className = `px-3 py-2.5 text-xs font-bold rounded-xl transition ${isCreate ? "bg-white dark:bg-slate-700 text-blue-600 dark:text-white shadow-sm" : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"}`;
       const error = document.getElementById("account-form-error");
       error.textContent = "";
       error.classList.add("hidden");
@@ -757,7 +930,7 @@
     function logoutCurrentAccount(message = "", mode = "login") {
       const oldUsername = accountState.username;
       clearStoredSession();
-      if (oldUsername) localStorage.removeItem(roomPinStorageKey(oldUsername));
+      if (oldUsername) safeStorageRemove(roomPinStorageKey(oldUsername));
       accountState = { active: false, username: "", sessionToken: "", expiresAt: "", status: "NO_SESSION" };
       markAccountIdentityChanged();
       roomAccessTokens.clear();
@@ -820,6 +993,7 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
+      initTheme();
       initViewportHeight();
       initAccountIdentity();
       setupEventListeners();
@@ -827,6 +1001,7 @@
       startCountdownTimer();
       startPolling();
       handleResponsiveLayout();
+      renderLucideIcons();
     });
 
     // ================================================================
@@ -866,7 +1041,7 @@
       const label = document.getElementById("sync-text");
       label.textContent = text;
 
-      const base = "w-2 h-2 rounded-full inline-block";
+      const base = "w-2 h-2 rounded-full inline-block flex-shrink-0";
       if (state === "online") {
         dot.className = `${base} bg-emerald-500 pulse-indicator`;
       } else if (state === "syncing" || state === "idle") {
@@ -1073,7 +1248,7 @@
       const badge = document.getElementById("badge-mode");
       if (!POLLING_ENABLED) {
         badge.textContent = "Preview";
-        badge.className = "text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200";
+        badge.className = "text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/70";
         setSyncStatus("idle", "Preview • koneksi GAS dinonaktifkan");
         return;
       }
@@ -1298,6 +1473,7 @@
       renderRoomsList();
       renderActiveRoomContent();
       handleResponsiveLayout();
+      renderLucideIcons();
     }
 
     function renderRoomsList() {
@@ -1314,11 +1490,15 @@
       }
 
       if (!rooms.length) {
-        container.innerHTML = `<div class="py-8 text-center text-xs text-slate-400">Tidak ada ruang yang cocok dengan "${escapeHTML(roomFilterQuery)}"</div>`;
+        const markup = `<div class="py-10 text-center text-xs text-slate-400">Tidak ada ruang yang cocok dengan "${escapeHTML(roomFilterQuery)}"</div>`;
+        if (lastRoomsListMarkup !== markup) {
+          container.innerHTML = markup;
+          lastRoomsListMarkup = markup;
+        }
         return;
       }
 
-      container.innerHTML = rooms.map((room, index) => {
+      const markup = rooms.map((room, index) => {
         const name = room.name;
         const isShared = !!room.isShared || isSharedRoom(name);
         const isSelected = normalizeRoomKey(name) === normalizeRoomKey(selectedRoom);
@@ -1330,45 +1510,50 @@
         let statusText = "Ruang terkunci";
         let statusIcon = "lock";
         if (isShared) {
-          statusText = "Semua akun aktif dapat melihat & mengirim";
+          statusText = "Semua akun aktif";
           statusIcon = "users";
         } else if (isOwner) {
           statusText = "Ruang Anda";
           statusIcon = "shield-check";
         } else if (!room.isProtected) {
-          statusText = "Ruang belum memiliki PIN";
+          statusText = "Belum ada PIN";
           statusIcon = "warning";
         } else if (isUnlocked) {
-          statusText = "PIN terverifikasi pada sesi ini";
+          statusText = "Terbuka di sesi ini";
           statusIcon = "unlock";
         }
 
         const avatar = isShared
-          ? `<div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-indigo-600 text-white">${iconSvg("users", "w-4.5 h-4.5")}</div>`
-          : `<div class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs flex-shrink-0 ${isOwner ? "bg-brand-600 text-white" : "bg-slate-800 text-white"}">${escapeHTML(name.charAt(0).toUpperCase())}</div>`;
+          ? `<div class="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 bg-gradient-to-tr from-blue-600 via-indigo-600 to-violet-500 text-white shadow-sm">${iconSvg("users", "w-5 h-5")}</div>`
+          : `<div class="w-11 h-11 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 ${isOwner ? "bg-gradient-to-tr from-indigo-600 to-violet-600 text-white shadow-sm" : "bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-100"}">${escapeHTML(name.charAt(0).toUpperCase())}</div>`;
 
         return `
-          <div data-room-index="${index}" class="js-room-card p-3 rounded-xl cursor-pointer transition-all duration-150 border ${
+          <div data-room-index="${index}" class="js-room-card group p-2.5 rounded-2xl cursor-pointer transition-all duration-150 ${
             isSelected
-              ? "bg-brand-50/90 border-brand-200 text-brand-950 shadow-xs ring-1 ring-brand-500/20"
-              : "bg-white hover:bg-slate-50 border-slate-200 text-slate-800"
-          } ${isShared ? "mb-2" : ""}">
-            <div class="flex items-center justify-between gap-2">
-              <div class="flex items-center gap-2.5 min-w-0">
+              ? "bg-blue-50/90 dark:bg-blue-950/50 text-slate-900 dark:text-white"
+              : "bg-transparent hover:bg-slate-100/80 dark:hover:bg-slate-800/60 text-slate-800 dark:text-slate-100"
+          }">
+            <div class="flex items-center justify-between gap-2.5">
+              <div class="flex items-center gap-3 min-w-0">
                 ${avatar}
                 <div class="truncate min-w-0">
                   <div class="flex items-center gap-1.5">
-                    <span class="font-bold text-xs truncate">${escapeHTML(name)}</span>
-                    ${isShared ? '<span class="text-[9px] bg-indigo-100 text-indigo-800 px-1.5 py-0.2 rounded font-bold">Bersama</span>' : ""}
-                    ${isOwner ? '<span class="text-[9px] bg-brand-100 text-brand-800 px-1.5 py-0.2 rounded font-bold">Saya</span>' : ""}
+                    <span class="font-bold text-[13px] truncate">${escapeHTML(name)}</span>
+                    ${isShared ? '<span class="text-[9px] bg-blue-100 dark:bg-blue-900/70 text-blue-700 dark:text-blue-200 px-1.5 py-0.5 rounded-full font-bold">Bersama</span>' : ""}
+                    ${isOwner ? '<span class="text-[9px] bg-indigo-100 dark:bg-indigo-900/70 text-indigo-700 dark:text-indigo-200 px-1.5 py-0.5 rounded-full font-bold">Saya</span>' : ""}
                   </div>
-                  <p class="text-[11px] text-slate-500 truncate mt-0.5 flex items-center gap-1">${iconSvg(statusIcon, "w-3.5 h-3.5 flex-shrink-0")}<span class="truncate">${escapeHTML(statusText)}</span></p>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5 flex items-center gap-1">${iconSvg(statusIcon, "w-3 h-3 flex-shrink-0")}<span class="truncate">${escapeHTML(statusText)}</span></p>
                 </div>
               </div>
-              <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 ${count ? "bg-brand-100 text-brand-800" : "bg-slate-100 text-slate-400"}">${count} kiriman</span>
+              <span class="text-[10px] font-bold min-w-[22px] h-[22px] px-1.5 rounded-full flex items-center justify-center flex-shrink-0 ${count ? "bg-blue-600 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500"}">${count}</span>
             </div>
           </div>`;
       }).join("");
+
+      // Polling tanpa perubahan tidak boleh membuat ulang daftar ruang.
+      if (lastRoomsListMarkup === markup) return;
+      container.innerHTML = markup;
+      lastRoomsListMarkup = markup;
 
       container.querySelectorAll(".js-room-card").forEach(card => {
         card.addEventListener("click", () => {
@@ -1438,10 +1623,17 @@
       toggle.classList.remove("hidden");
       change.textContent = "Ganti";
 
-      if (!isOwner) return;
+      if (!isOwner) {
+        lastOwnerPinMarkupKey = null;
+        return;
+      }
       const storedPin = getStoredRoomPin(selectedRoom);
+      const pinKey = `${selectedRoom}|${ownerPinVisible}|${storedPin}`;
+      if (lastOwnerPinMarkupKey === pinKey) return;
       display.textContent = ownerPinVisible && storedPin ? storedPin : "••••••";
       toggle.innerHTML = iconSvg(ownerPinVisible ? "eye-off" : "eye", "w-3.5 h-3.5");
+      lastOwnerPinMarkupKey = pinKey;
+      renderLucideIcons();
     }
 
     function renderActiveRoomContent() {
@@ -1460,15 +1652,23 @@
       const summary = getRoomSummary(selectedRoom) || { count: 0, isProtected: false, isShared: false };
       const shared = !!(summary.isShared || isSharedRoom(selectedRoom));
 
-      headerName.textContent = shared ? SHARED_ROOM_NAME : (selectedRoom || "Ruang");
+      const desiredRoomName = shared ? SHARED_ROOM_NAME : (selectedRoom || "Ruang");
+      if (headerName.textContent !== desiredRoomName) headerName.textContent = desiredRoomName;
       if (shared) {
-        headerAvatar.innerHTML = iconSvg("users", "w-5 h-5");
-        headerAvatar.className = "w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-sm flex-shrink-0";
+        if (headerAvatar.dataset.roomAvatar !== "shared") {
+          headerAvatar.innerHTML = iconSvg("users", "w-5 h-5");
+          headerAvatar.className = "w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-violet-500 text-white flex items-center justify-center shadow-md shadow-blue-500/20 flex-shrink-0";
+          headerAvatar.dataset.roomAvatar = "shared";
+        }
         headerBadge.textContent = "Bersama";
         headerBadge.classList.remove("hidden");
       } else {
-        headerAvatar.textContent = (selectedRoom || "K").charAt(0).toUpperCase();
-        headerAvatar.className = "w-10 h-10 rounded-xl bg-brand-600 text-white font-bold flex items-center justify-center text-base shadow-sm flex-shrink-0";
+        const initial = (selectedRoom || "K").charAt(0).toUpperCase();
+        if (headerAvatar.dataset.roomAvatar !== `own:${initial}`) {
+          headerAvatar.textContent = initial;
+          headerAvatar.className = "w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-600 to-violet-600 text-white font-bold flex items-center justify-center text-base shadow-md shadow-indigo-500/20 flex-shrink-0";
+          headerAvatar.dataset.roomAvatar = `own:${initial}`;
+        }
         headerBadge.textContent = "Ruang Anda";
         headerBadge.classList.toggle("hidden", !selectedRoomAccess.isOwner);
       }
@@ -1494,144 +1694,243 @@
       setComposerEnabled(authorized);
 
       if (!selectedRoom) {
+        renderedMessageSignatures.clear();
+        lastRenderedRoom = "";
         emptyState.classList.add("hidden");
         headerStats.textContent = "Masuk atau buat akun untuk mulai";
         container.innerHTML = `
-          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 text-center">
-            <div class="w-12 h-12 mx-auto rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center mb-3">${iconSvg("user", "w-6 h-6")}</div>
-            <h3 class="font-bold text-slate-800 text-sm">Belum Masuk</h3>
-            <p class="text-xs text-slate-500 mt-1">Masuk ke akun yang masih aktif atau buat akun sementara baru untuk menggunakan ChatSofyan.</p>
+          <div class="bg-slate-50 dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-8 text-center max-w-md mx-auto mt-8">
+            <div class="w-12 h-12 mx-auto rounded-full bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center mb-3">${iconSvg("user", "w-6 h-6")}</div>
+            <h3 class="font-bold text-slate-900 dark:text-white text-sm">Belum Masuk</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">Masuk ke akun yang masih aktif atau buat akun sementara baru untuk menggunakan ChatSofyan.</p>
           </div>`;
         return;
       }
 
       if (!selectedRoomAccess.exists) {
+        renderedMessageSignatures.clear();
+        lastRenderedRoom = "";
         emptyState.classList.add("hidden");
         headerStats.textContent = `${count} kiriman • ruang tidak memiliki PIN`;
         container.innerHTML = `
-          <div class="bg-white rounded-2xl border border-amber-200 shadow-sm p-6 text-center">
-            <div class="w-12 h-12 mx-auto rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-3">${iconSvg("warning", "w-6 h-6")}</div>
-            <h3 class="font-bold text-slate-800 text-sm">Ruang Tidak Memiliki PIN</h3>
-            <p class="text-xs text-slate-500 mt-1">Ruang lama ini belum memiliki data keamanan yang dapat digunakan.</p>
+          <div class="bg-amber-50/70 dark:bg-slate-900 rounded-3xl border border-amber-200/80 dark:border-amber-800/60 p-8 text-center max-w-md mx-auto mt-8">
+            <div class="w-12 h-12 mx-auto rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-3">${iconSvg("warning", "w-6 h-6")}</div>
+            <h3 class="font-bold text-slate-900 dark:text-white text-sm">Ruang Tidak Memiliki PIN</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">Ruang lama ini belum memiliki data keamanan yang dapat digunakan.</p>
           </div>`;
         return;
       }
 
       if (!authorized) {
+        renderedMessageSignatures.clear();
+        lastRenderedRoom = "";
         emptyState.classList.add("hidden");
         headerStats.textContent = `${count} kiriman • terlindungi PIN`;
         container.innerHTML = `
-          <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 text-center">
-            <div class="w-14 h-14 mx-auto rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center mb-3">${iconSvg("lock", "w-7 h-7")}</div>
-            <h3 class="font-bold text-slate-800 text-sm">Ruang Terkunci</h3>
-            <p class="text-xs text-slate-500 mt-1">Masukkan PIN 6 digit untuk melihat isi ruang ${escapeHTML(selectedRoom)}.</p>
-            <button id="btn-unlock-room-inline" class="mt-4 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg">Masukkan PIN</button>
+          <div class="bg-slate-50 dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-8 text-center max-w-md mx-auto mt-8">
+            <div class="w-14 h-14 mx-auto rounded-full bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-3.5">${iconSvg("lock", "w-7 h-7")}</div>
+            <h3 class="font-bold text-slate-900 dark:text-white text-sm">Ruang Terkunci</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">Masukkan PIN 6 digit untuk melihat isi ruang ${escapeHTML(selectedRoom)}.</p>
+            <button id="btn-unlock-room-inline" class="mt-4 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold rounded-full shadow-md shadow-blue-500/20 transition">Masukkan PIN</button>
           </div>`;
         document.getElementById("btn-unlock-room-inline")?.addEventListener("click", () => openPinModal("unlock", selectedRoom));
         return;
       }
 
       headerStats.textContent = shared
-        ? `${roomItems.length} kiriman • semua akun aktif • terhapus otomatis dalam ${Math.round(serverTtlSeconds / 60)} menit`
-        : `${roomItems.length} kiriman • terhapus otomatis dalam ${Math.round(serverTtlSeconds / 60)} menit`;
+        ? `${roomItems.length} kiriman • semua akun aktif • hapus otomatis ${Math.round(serverTtlSeconds / 60)} menit`
+        : `${roomItems.length} kiriman • hapus otomatis ${Math.round(serverTtlSeconds / 60)} menit`;
 
       if (!roomItems.length) {
-        container.innerHTML = "";
+        if (container.childElementCount) container.replaceChildren();
+        renderedMessageSignatures.clear();
+        lastRenderedRoom = "";
         emptyState.classList.remove("hidden");
+        forceScrollToBottom = false;
         return;
       }
 
       emptyState.classList.add("hidden");
       const sorted = [...roomItems].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-
-      container.innerHTML = sorted.map(item => {
+      const canKeepExistingCards = !roomChanged;
+      const existingCardIds = new Set(Array.from(container.children, el => el.id.slice(5)));
+      const nextMessageSignatures = new Map();
+      const cards = sorted.map(item => {
+        const id = String(item.id);
+        const signature = JSON.stringify([
+          item.timestamp, item.expiresAt, item.sender, item.type,
+          item.content, item.caption, item.fileName, item.accessUrl,
+          item.fileSize, item.deliveryStatus, item.localOnly,
+          item.errorMessage, myDevice, shared
+        ]);
+        nextMessageSignatures.set(id, signature);
+        // Jangan bangun ulang pesan lama; pertahankan posisi gulir dan fokus seleksi.
+        if (canKeepExistingCards && renderedMessageSignatures.get(id) === signature &&
+            existingCardIds.has(id)) {
+          return { id, html: null };
+        }
         const remaining = getRemainingSeconds(item);
         const timeFormatted = new Date(item.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
         const isMine = normalizeRoomKey(item.sender) === normalizeRoomKey(myDevice);
         const senderLabel = isMine ? "Anda" : item.sender;
         const canDeleteItem = !!item.localOnly || !shared || isMine;
+        const copyPayload = item.type === "file" ? (item.caption || "") : (item.type === "link" ? (item.accessUrl || item.content) : item.content);
 
-        return `
-          <div id="card-${escapeHTML(item.id)}" class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs hover:shadow-md transition-all min-w-0 max-w-full overflow-hidden">
-            <div class="flex items-center justify-between gap-2 pb-2 mb-2.5 border-b border-slate-100 text-xs min-w-0">
-              <div class="flex items-center gap-2 text-slate-500 font-medium min-w-0">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block flex-shrink-0"></span>
-                <span class="truncate">${escapeHTML(senderLabel)} · ${escapeHTML(timeFormatted)}</span>
+        const countdownHtml = item.deliveryStatus === "sent"
+          ? `<span class="js-countdown text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${countdownClass(remaining)}" data-expires-at="${escapeHTML(item.expiresAt)}" title="Sisa masa aktif">${formatCountdown(remaining)}</span>`
+          : "";
+
+        const deleteBtnHtml = canDeleteItem ? (item.localOnly ? `
+          <button data-local-remove-id="${escapeHTML(item.id)}" class="js-local-remove-btn p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/60 rounded-full transition" title="Hapus kiriman lokal">
+            ${iconSvg("trash", "w-3.5 h-3.5")}
+          </button>` : `
+          <button data-delete-id="${escapeHTML(item.id)}" class="js-delete-btn p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/60 rounded-full transition" title="Hapus kiriman ini">
+            ${iconSvg("trash", "w-3.5 h-3.5")}
+          </button>`) : "";
+
+        const copyBtnHtml = copyPayload ? `
+          <button data-copy="${escapeHTML(copyPayload)}" class="js-copy-btn p-1.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition" title="Salin">
+            ${iconSvg("copy", "w-3.5 h-3.5")}
+          </button>` : "";
+
+        if (isMine) {
+          return { id, html: `
+            <div id="card-${escapeHTML(item.id)}" class="msg-enter flex flex-col items-end w-full min-w-0">
+              <div class="flex items-center justify-end gap-1.5 w-full min-w-0">
+                <div class="flex items-center gap-0.5 flex-shrink-0">
+                  ${renderDeliveryStatus(item)}
+                  ${copyBtnHtml}
+                  ${deleteBtnHtml}
+                </div>
+                <div class="max-w-[85%] sm:max-w-[74%] min-w-0 rounded-[22px] rounded-br-[6px] px-4 py-2.5 bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-600 text-white shadow-md shadow-blue-600/15 overflow-hidden">
+                  ${renderMessageContent(item, true)}
+                </div>
               </div>
-              <div class="flex items-center gap-2 flex-shrink-0">
-                ${renderDeliveryStatus(item)}
-                ${item.deliveryStatus === "sent" ? `
-                <div class="flex items-center gap-1" title="Sisa masa aktif">
-                  <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span class="js-countdown text-[11px] font-mono font-bold px-2 py-0.5 rounded-full ${countdownClass(remaining)}" data-expires-at="${escapeHTML(item.expiresAt)}">${formatCountdown(remaining)}</span>
-                </div>` : ""}
-                ${canDeleteItem ? (item.localOnly ? `
-                <button data-local-remove-id="${escapeHTML(item.id)}" class="js-local-remove-btn p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Hapus kiriman lokal">
-                  ${iconSvg("trash", "w-4 h-4")}
-                </button>` : `
-                <button data-delete-id="${escapeHTML(item.id)}" class="js-delete-btn p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition" title="Hapus kiriman ini">
-                  ${iconSvg("trash", "w-4 h-4")}
-                </button>`) : ""}
+              <div class="flex items-center gap-1.5 mt-1 pr-1 text-[10px] text-slate-400 dark:text-slate-500">
+                <span>${escapeHTML(timeFormatted)}</span>
+                ${countdownHtml}
+              </div>
+            </div>` };
+        }
+
+        const initial = escapeHTML((item.sender || "?").charAt(0).toUpperCase());
+        return { id, html: `
+          <div id="card-${escapeHTML(item.id)}" class="msg-enter flex items-end gap-2 w-full min-w-0">
+            <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-slate-700 to-slate-900 dark:from-slate-600 dark:to-slate-800 text-white text-[11px] font-bold flex items-center justify-center flex-shrink-0 mb-5 shadow-xs" title="${escapeHTML(item.sender)}">
+              ${initial}
+            </div>
+            <div class="flex flex-col items-start flex-1 min-w-0">
+              <span class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 ml-2 mb-1 truncate max-w-[75%]">${escapeHTML(senderLabel)}</span>
+              <div class="flex items-center gap-1.5 w-full min-w-0">
+                <div class="max-w-[85%] sm:max-w-[74%] min-w-0 rounded-[22px] rounded-bl-[6px] px-4 py-2.5 bg-slate-100 dark:bg-slate-800/95 text-slate-900 dark:text-slate-100 border border-slate-200/70 dark:border-slate-700/60 shadow-xs overflow-hidden">
+                  ${renderMessageContent(item, false)}
+                </div>
+                <div class="flex items-center gap-0.5 flex-shrink-0">
+                  ${copyBtnHtml}
+                  ${deleteBtnHtml}
+                  ${renderDeliveryStatus(item)}
+                </div>
+              </div>
+              <div class="flex items-center gap-1.5 mt-1 pl-2 text-[10px] text-slate-400 dark:text-slate-500">
+                <span>${escapeHTML(timeFormatted)}</span>
+                ${countdownHtml}
               </div>
             </div>
-            <div class="min-w-0 max-w-full overflow-hidden">${renderMessageContent(item)}</div>
-          </div>`;
-      }).join("");
-
-      bindMessageActionButtons();
-      lastRenderedRoom = selectedRoom;
-      requestAnimationFrame(() => {
-        if (!scrollArea) return;
-        if (roomChanged || forceScrollToBottom || wasNearBottom) {
-          scrollArea.scrollTop = scrollArea.scrollHeight;
-        }
-        forceScrollToBottom = false;
+          </div>` };
       });
+
+      if (roomChanged) {
+        container.replaceChildren();
+        renderedMessageSignatures.clear();
+      }
+      const previousCards = new Map(Array.from(container.children, node => [node.id.slice(5), node]));
+      const wantedIds = new Set();
+      let domChanged = false;
+      const freshCards = [];
+      cards.forEach((card, index) => {
+        wantedIds.add(card.id);
+        let node = previousCards.get(card.id);
+        if (card.html !== null) {
+          const template = document.createElement("template");
+          template.innerHTML = card.html.trim();
+          const replacement = template.content.firstElementChild;
+          if (node) {
+            // Hanya kiriman baru yang menjalankan animasi masuk.
+            replacement.classList.remove("msg-enter");
+            node.replaceWith(replacement);
+          } else {
+            container.appendChild(replacement);
+          }
+          node = replacement;
+          freshCards.push(node);
+          domChanged = true;
+        }
+        if (node && container.children[index] !== node) {
+          container.insertBefore(node, container.children[index] || null);
+          domChanged = true;
+        }
+      });
+      Array.from(container.children).forEach(node => {
+        if (!wantedIds.has(node.id.slice(5))) {
+          node.remove();
+          domChanged = true;
+        }
+      });
+
+      // Event handlers hanya untuk kartu yang benar-benar baru/berubah.
+      freshCards.forEach(bindMessageActionButtons);
+      renderedMessageSignatures = nextMessageSignatures;
+      lastRenderedRoom = selectedRoom;
+      if (roomChanged || forceScrollToBottom || (domChanged && wasNearBottom)) {
+        const renderedRoom = selectedRoom;
+        requestAnimationFrame(() => {
+          if (selectedRoom === renderedRoom && scrollArea) {
+            scrollArea.scrollTop = scrollArea.scrollHeight;
+          }
+        });
+      }
+      forceScrollToBottom = false;
     }
 
     function renderDeliveryStatus(item) {
       const status = String(item.deliveryStatus || "sent");
       if (status === "pending") {
-        return `<span class="inline-flex items-center justify-center text-brand-600" title="Sedang dikirim">${iconSvg("loader", "w-4 h-4 animate-spin")}</span>`;
+        return `<span class="inline-flex items-center justify-center text-blue-600 dark:text-blue-400 p-1" title="Sedang dikirim">${iconSvg("loader", "w-3.5 h-3.5 animate-spin")}</span>`;
       }
       if (status === "failed") {
-        return `<button data-retry-send-id="${escapeHTML(item.id)}" class="js-retry-send-btn inline-flex items-center gap-1 text-rose-600 hover:text-rose-700 text-[10px] font-bold" title="${escapeHTML(item.errorMessage || "Gagal mengirim. Klik untuk mencoba lagi.")}">${iconSvg("retry", "w-4 h-4")}<span class="hidden sm:inline">Coba lagi</span></button>`;
+        return `<button data-retry-send-id="${escapeHTML(item.id)}" class="js-retry-send-btn inline-flex items-center gap-1 text-rose-600 dark:text-rose-400 hover:text-rose-700 text-[10px] font-bold px-1.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/60" title="${escapeHTML(item.errorMessage || "Gagal mengirim. Klik untuk mencoba lagi.")}">${iconSvg("retry", "w-3.5 h-3.5")}<span class="hidden sm:inline">Coba lagi</span></button>`;
       }
       return "";
     }
 
-    function renderMessageContent(item) {
+    function renderMessageContent(item, isMine = false) {
       if (item.type === "text") {
-        return `
-          <div class="flex items-start justify-between gap-3 min-w-0 max-w-full">
-            <p class="flex-1 min-w-0 max-w-full chat-wrap-anywhere text-xs sm:text-sm text-slate-800 whitespace-pre-wrap leading-relaxed select-text font-normal">${escapeHTML(item.content)}</p>
-            <button data-copy="${escapeHTML(item.content)}" class="js-copy-btn p-2 text-slate-400 hover:text-brand-600 hover:bg-slate-50 rounded-lg transition flex-shrink-0" title="Salin Teks">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-            </button>
-          </div>`;
+        return `<p class="chat-wrap-anywhere text-xs sm:text-[13.5px] whitespace-pre-wrap leading-relaxed select-text font-normal ${isMine ? "text-white" : "text-slate-900 dark:text-slate-100"}">${escapeHTML(item.content)}</p>`;
       }
 
       if (item.type === "link") {
         const url = item.accessUrl || item.content;
         const href = isValidURL(url) ? url : "#";
+        const boxClass = isMine
+          ? "bg-white/15 border border-white/25 text-white"
+          : "bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700 text-slate-900 dark:text-white";
+        const urlClass = isMine ? "text-blue-100" : "text-blue-600 dark:text-blue-400";
+        const openBtnClass = isMine
+          ? "bg-white text-indigo-700 hover:bg-blue-50"
+          : "bg-blue-600 hover:bg-blue-700 text-white";
+
         return `
-          <div class="bg-indigo-50/70 border border-indigo-100 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-w-0 max-w-full overflow-hidden">
-            <div class="flex items-start gap-3 overflow-hidden min-w-0 flex-1">
-              <div class="w-10 h-10 rounded-lg bg-indigo-600 text-white flex items-center justify-center flex-shrink-0 shadow-xs">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
-              </div>
+          <div class="${boxClass} rounded-2xl p-3 flex flex-col gap-2.5 min-w-0 max-w-full overflow-hidden">
+            <div class="flex items-start gap-2.5 min-w-0">
+              <div class="w-8 h-8 rounded-xl ${isMine ? "bg-white/20 text-white" : "bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-300"} flex items-center justify-center flex-shrink-0"><i data-lucide="link-2" class="w-4 h-4" aria-hidden="true"></i></div>
               <div class="min-w-0 flex-1">
-                <h4 class="chat-wrap-anywhere text-xs sm:text-sm font-bold text-slate-900">${escapeHTML(item.content)}</h4>
-                <p class="chat-wrap-anywhere text-[11px] text-indigo-600 mt-0.5 font-mono">${escapeHTML(url)}</p>
+                <h4 class="chat-wrap-anywhere text-xs sm:text-sm font-bold leading-snug">${escapeHTML(item.content)}</h4>
+                <p class="chat-wrap-anywhere text-[11px] ${urlClass} mt-0.5 font-mono">${escapeHTML(url)}</p>
               </div>
             </div>
-            <div class="flex items-center gap-2 flex-shrink-0">
-              <button data-copy="${escapeHTML(url)}" class="js-copy-btn px-3 py-2 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-lg border border-slate-200 transition shadow-xs">Salin</button>
-              <a href="${escapeHTML(href)}" target="_blank" rel="noopener noreferrer" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-1.5 transition">
-                <span>Buka Link</span>
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+            <div class="flex items-center justify-end gap-2">
+              <a href="${escapeHTML(href)}" target="_blank" rel="noopener noreferrer" class="px-3.5 py-1.5 ${openBtnClass} text-xs font-bold rounded-full shadow-xs inline-flex items-center gap-1.5 transition">
+                <span>Buka Link</span><i data-lucide="external-link" class="w-3.5 h-3.5" aria-hidden="true"></i>
               </a>
             </div>
           </div>`;
@@ -1642,56 +1941,55 @@
         const caption = String(item.caption || "");
         const ext = (fileName.split(".").pop() || "FILE").toUpperCase();
         const sizeText = item.fileSize > 0 ? formatBytes(item.fileSize) : "Ukuran tidak tersedia";
+        const boxClass = isMine
+          ? "bg-white/15 border border-white/25 text-white"
+          : "bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700 text-slate-900 dark:text-white";
+        const subClass = isMine ? "text-blue-100" : "text-slate-500 dark:text-slate-400";
+        const dlBtnClass = isMine
+          ? "bg-white text-indigo-700 hover:bg-blue-50"
+          : "bg-slate-900 dark:bg-blue-600 hover:bg-slate-800 dark:hover:bg-blue-500 text-white";
+
         return `
-          <div class="overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
-            <div class="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div class="flex items-start gap-3 overflow-hidden min-w-0 flex-1">
-                <div class="w-10 h-10 rounded-lg bg-slate-800 text-white flex flex-col items-center justify-center flex-shrink-0 shadow-xs font-mono">
-                  <span class="text-[9px] font-bold uppercase text-amber-400">${escapeHTML(ext.substring(0, 4))}</span>
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+          <div class="space-y-2 min-w-0 max-w-full">
+            <div class="${boxClass} rounded-2xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-w-0">
+              <div class="flex items-start gap-2.5 overflow-hidden min-w-0 flex-1">
+                <div class="w-9 h-9 rounded-xl ${isMine ? "bg-white/20 text-white" : "bg-slate-800 dark:bg-slate-700 text-white"} flex flex-col items-center justify-center flex-shrink-0 font-mono">
+                  <span class="text-[8px] font-bold uppercase ${isMine ? "text-amber-200" : "text-amber-400"}">${escapeHTML(ext.substring(0, 4))}</span><i data-lucide="file-text" class="w-3.5 h-3.5" aria-hidden="true"></i>
                 </div>
                 <div class="min-w-0 flex-1">
-                  <h4 class="chat-wrap-anywhere text-xs sm:text-sm font-bold text-slate-800">${escapeHTML(fileName)}</h4>
-                  <p class="text-[11px] text-slate-500 mt-0.5">${escapeHTML(sizeText)} • tersedia sementara</p>
+                  <h4 class="chat-wrap-anywhere text-xs sm:text-sm font-bold leading-snug">${escapeHTML(fileName)}</h4>
+                  <p class="text-[11px] ${subClass} mt-0.5">${escapeHTML(sizeText)} • sementara</p>
                 </div>
               </div>
               ${item.deliveryStatus === "sent" ? `
-              <a href="${escapeHTML(item.accessUrl || "#")}" target="_blank" rel="noopener noreferrer" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-lg shadow-sm flex items-center justify-center gap-1.5 transition flex-shrink-0">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                <span>Unduh File</span>
+              <a href="${escapeHTML(item.accessUrl || "#")}" target="_blank" rel="noopener noreferrer" class="px-3.5 py-1.5 ${dlBtnClass} text-xs font-bold rounded-full shadow-xs flex items-center justify-center gap-1.5 transition flex-shrink-0"><i data-lucide="download" class="w-3.5 h-3.5" aria-hidden="true"></i><span>Unduh</span>
               </a>` : `
-              <div class="px-3 py-2 bg-white text-slate-500 text-xs font-semibold rounded-lg border border-slate-200 flex items-center gap-1.5 flex-shrink-0">
-                ${item.deliveryStatus === "failed" ? iconSvg("error", "w-4 h-4 text-rose-500") : iconSvg("loader", "w-4 h-4 animate-spin text-brand-600")}
+              <div class="px-3 py-1.5 bg-black/15 rounded-full text-xs font-semibold flex items-center gap-1.5 flex-shrink-0">
+                ${item.deliveryStatus === "failed" ? iconSvg("error", "w-3.5 h-3.5 text-rose-300") : iconSvg("loader", "w-3.5 h-3.5 animate-spin")}
                 <span>${item.deliveryStatus === "failed" ? "Gagal" : "Mengunggah"}</span>
               </div>`}
             </div>
-            ${caption ? `
-            <div class="border-t border-slate-200 bg-white px-3.5 py-3 flex items-start justify-between gap-3 min-w-0 max-w-full">
-              <p class="flex-1 min-w-0 max-w-full chat-wrap-anywhere text-xs sm:text-sm text-slate-800 whitespace-pre-wrap leading-relaxed select-text font-normal">${escapeHTML(caption)}</p>
-              <button data-copy="${escapeHTML(caption)}" class="js-copy-btn p-2 text-slate-400 hover:text-brand-600 hover:bg-slate-50 rounded-lg transition flex-shrink-0" title="Salin Keterangan">
-                ${iconSvg("copy", "w-4 h-4")}
-              </button>
-            </div>` : ""}
+            ${caption ? `<p class="chat-wrap-anywhere text-xs sm:text-[13.5px] whitespace-pre-wrap leading-relaxed select-text font-normal ${isMine ? "text-white" : "text-slate-900 dark:text-slate-100"}">${escapeHTML(caption)}</p>` : ""}
           </div>`;
       }
 
       return "";
     }
 
-    function bindMessageActionButtons() {
-      document.querySelectorAll(".js-delete-btn").forEach(btn => {
+    function bindMessageActionButtons(root = document) {
+      root.querySelectorAll(".js-delete-btn").forEach(btn => {
         btn.addEventListener("click", () => handleDeleteItem(btn.dataset.deleteId));
       });
 
-      document.querySelectorAll(".js-copy-btn").forEach(btn => {
+      root.querySelectorAll(".js-copy-btn").forEach(btn => {
         btn.addEventListener("click", () => copyToClipboard(btn.dataset.copy || ""));
       });
 
-      document.querySelectorAll(".js-retry-send-btn").forEach(btn => {
+      root.querySelectorAll(".js-retry-send-btn").forEach(btn => {
         btn.addEventListener("click", () => retryPendingMessage(btn.dataset.retrySendId));
       });
 
-      document.querySelectorAll(".js-local-remove-btn").forEach(btn => {
+      root.querySelectorAll(".js-local-remove-btn").forEach(btn => {
         btn.addEventListener("click", () => removeLocalPendingMessage(btn.dataset.localRemoveId));
       });
     }
@@ -1701,8 +1999,8 @@
     // ================================================================
     function countdownClass(seconds) {
       return seconds < 120
-        ? "bg-rose-100 text-rose-700 border border-rose-200 animate-pulse"
-        : "bg-slate-100 text-slate-600 border border-slate-200";
+        ? "bg-rose-100 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 animate-pulse"
+        : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400";
     }
 
     function formatCountdown(seconds) {
@@ -1730,7 +2028,7 @@
           el.textContent = formatCountdown(remaining);
 
           if (el.classList.contains("js-countdown") && remaining < 120) {
-            el.className = `js-countdown text-[11px] font-mono font-bold px-2 py-0.5 rounded-full ${countdownClass(remaining)}`;
+            el.className = `js-countdown text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${countdownClass(remaining)}`;
             el.dataset.expiresAt = new Date(expiresMs).toISOString();
           }
 
@@ -1759,6 +2057,7 @@
       input.value = "";
       input.type = "password";
       document.getElementById("btn-toggle-pin-modal").innerHTML = iconSvg("eye", "w-4 h-4");
+      renderLucideIcons();
       error.textContent = "";
       error.classList.add("hidden");
 
@@ -1971,7 +2270,7 @@
       selectedFileBase64 = null;
       document.getElementById("file-input").value = "";
       document.getElementById("file-preview-bar").classList.add("hidden");
-      document.getElementById("message-input").placeholder = "Tulis pesan atau tempel link...";
+      document.getElementById("message-input").placeholder = "Aa";
     }
 
     // ================================================================
@@ -2073,6 +2372,13 @@
 
         if (data.item) {
           const confirmed = normalizeItem({ ...data.item, deliveryStatus: "sent", localOnly: false });
+          if (selectedRoom === context.room) {
+            const localCard = document.getElementById(`card-${context.localId}`);
+            if (localCard) {
+              localCard.id = `card-${confirmed.id}`;
+              localCard.classList.remove("msg-enter");
+            }
+          }
           replaceCachedItem(context.room, context.localId, confirmed);
           const summary = getRoomSummary(context.room);
           if (summary) {
@@ -2250,7 +2556,8 @@
         ? `Hapus semua ${targetItems.length} kiriman milik Anda dari "${SHARED_ROOM_NAME}"? Kiriman pengguna lain tidak akan dihapus.`
         : `Hapus semua ${targetItems.length} kiriman dari ruang "${room}"?`;
 
-      if (!window.confirm(confirmText)) return;
+      const confirmed = await showConfirmModal("Hapus Kiriman", confirmText, "Hapus");
+      if (!confirmed) return;
 
       try {
         const data = await postToGAS({
@@ -2317,6 +2624,8 @@
     // EVENT LISTENERS
     // ================================================================
     function setupEventListeners() {
+      document.getElementById("btn-theme-toggle")?.addEventListener("click", toggleTheme);
+      document.getElementById("btn-login-theme-toggle")?.addEventListener("click", toggleTheme);
       document.getElementById("btn-cancel-file").addEventListener("click", cancelSelectedFile);
       document.getElementById("btn-clear-current-room").addEventListener("click", handleClearCurrentRoom);
       setupDragAndDrop();
@@ -2362,6 +2671,7 @@
         const btn = document.getElementById("btn-toggle-pin-modal");
         input.type = input.type === "password" ? "text" : "password";
         btn.innerHTML = iconSvg(input.type === "password" ? "eye" : "eye-off", "w-4 h-4");
+        renderLucideIcons();
         input.focus();
       });
 
@@ -2374,8 +2684,13 @@
 
       document.getElementById("btn-account-mode-login").addEventListener("click", () => setAccountModalMode("login"));
       document.getElementById("btn-account-mode-create").addEventListener("click", () => setAccountModalMode("create"));
-      document.getElementById("btn-logout").addEventListener("click", () => {
-        if (window.confirm("Keluar dari akun pada browser ini? Akun tetap aktif sampai masa 12 jam berakhir.")) {
+      document.getElementById("btn-logout").addEventListener("click", async () => {
+        const confirmed = await showConfirmModal(
+          "Keluar dari Akun?",
+          "Keluar dari akun pada browser ini? Akun tetap aktif sampai masa 12 jam berakhir.",
+          "Keluar"
+        );
+        if (confirmed) {
           logoutCurrentAccount("Anda telah keluar. Masuk kembali kapan saja selama akun masih aktif.", "login");
         }
       });
@@ -2389,6 +2704,7 @@
         const btn = document.getElementById("btn-toggle-account-pin");
         input.type = input.type === "password" ? "text" : "password";
         btn.innerHTML = iconSvg(input.type === "password" ? "eye" : "eye-off", "w-4 h-4");
+        renderLucideIcons();
         input.focus();
       });
       document.getElementById("search-room-input").addEventListener("input", (e) => {
@@ -2429,28 +2745,34 @@
     // ================================================================
     // IKON LINE ART MINIMALIS
     // ================================================================
+    function renderLucideIcons() {
+      if (window.lucide && typeof window.lucide.createIcons === "function") {
+        window.lucide.createIcons();
+      }
+    }
+
     function iconSvg(name, className = "w-4 h-4") {
-      const common = `class="${className}" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"`;
-      const icons = {
-        info: `<svg ${common}><circle cx="12" cy="12" r="9" stroke-width="1.8"/><path stroke-linecap="round" stroke-width="1.8" d="M12 10.5V16M12 7.5h.01"/></svg>`,
-        check: `<svg ${common}><circle cx="12" cy="12" r="9" stroke-width="1.8"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m8.5 12 2.2 2.2 4.8-5"/></svg>`,
-        error: `<svg ${common}><circle cx="12" cy="12" r="9" stroke-width="1.8"/><path stroke-linecap="round" stroke-width="1.8" d="m9 9 6 6m0-6-6 6"/></svg>`,
-        warning: `<svg ${common}><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M10.3 4.4 2.8 17.2A1.9 1.9 0 004.4 20h15.2a1.9 1.9 0 001.6-2.8L13.7 4.4a2 2 0 00-3.4 0Z"/><path stroke-linecap="round" stroke-width="1.8" d="M12 9v4m0 3h.01"/></svg>`,
-        lock: `<svg ${common}><rect x="5" y="10" width="14" height="10" rx="2" stroke-width="1.8"/><path stroke-linecap="round" stroke-width="1.8" d="M8 10V7a4 4 0 018 0v3M12 14v2"/></svg>`,
-        unlock: `<svg ${common}><rect x="5" y="10" width="14" height="10" rx="2" stroke-width="1.8"/><path stroke-linecap="round" stroke-width="1.8" d="M8 10V7a4 4 0 017.4-2M12 14v2"/></svg>`,
-        "shield-check": `<svg ${common}><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3 5 6v5c0 4.7 2.8 8 7 10 4.2-2 7-5.3 7-10V6l-7-3Z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m9 12 2 2 4-4"/></svg>`,
-        eye: `<svg ${common}><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5" stroke-width="1.8"/></svg>`,
-        "eye-off": `<svg ${common}><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m3 3 18 18M10.7 6.1A10.6 10.6 0 0112 6c6 0 9.5 6 9.5 6a15 15 0 01-2.2 2.8M6.4 6.5C3.8 8.3 2.5 12 2.5 12s3.5 6 9.5 6c1.3 0 2.5-.3 3.5-.7M9.9 9.9a3 3 0 004.2 4.2"/></svg>`,
-        user: `<svg ${common}><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 7a3 3 0 11-6 0 3 3 0 016 0ZM5.5 20a6.5 6.5 0 0113 0"/></svg>`,
-        users: `<svg ${common}><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 20v-1.5a4.5 4.5 0 00-4.5-4.5h-3A4.5 4.5 0 004 18.5V20M10 10a3 3 0 100-6 3 3 0 000 6Zm6.5 3.5a3 3 0 010-5.8M18 20v-1a4 4 0 00-2.2-3.6"/></svg>`,
-        clock: `<svg ${common}><circle cx="12" cy="12" r="9" stroke-width="1.8"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 7v5l3 2"/></svg>`,
-        send: `<svg ${common}><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m3 11 17-7-7 17-2.3-7.7L3 11Zm7.7 2.3L14 10"/></svg>`,
-        loader: `<svg ${common}><path stroke-linecap="round" stroke-width="1.8" d="M12 3a9 9 0 1 1-6.36 2.64"/></svg>`,
-        retry: `<svg ${common}><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 7v5h-5M4 17v-5h5m10.2-2A8 8 0 0 0 6.1 6.1L4 8m16 8-2.1 1.9A8 8 0 0 1 4.8 14"/></svg>`,
-        trash: `<svg ${common}><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7m4 4v5m4-5v5"/></svg>`,
-        copy: `<svg ${common}><rect x="8" y="8" width="11" height="11" rx="2" stroke-width="1.8"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2"/></svg>`
+      const map = {
+        info: "info",
+        check: "circle-check",
+        error: "circle-x",
+        warning: "triangle-alert",
+        lock: "lock",
+        unlock: "lock-open",
+        "shield-check": "shield-check",
+        eye: "eye",
+        "eye-off": "eye-off",
+        user: "circle-user-round",
+        users: "users-round",
+        clock: "timer",
+        send: "send-horizontal",
+        loader: "loader-circle",
+        retry: "rotate-cw",
+        trash: "trash-2",
+        copy: "copy"
       };
-      return icons[name] || icons.info;
+      const iconName = map[name] || "info";
+      return `<i data-lucide="${iconName}" class="${className}" aria-hidden="true"></i>`;
     }
 
     // ================================================================
@@ -2509,6 +2831,7 @@
       const toast = document.getElementById("toast");
       document.getElementById("toast-message").textContent = message;
       document.getElementById("toast-icon").innerHTML = iconSvg(icon, "w-4 h-4");
+      renderLucideIcons();
       toast.classList.remove("-translate-y-20", "opacity-0");
       toast.classList.add("translate-y-0", "opacity-100");
 
